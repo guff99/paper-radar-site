@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-12</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-12</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.13107">
+  <div class="t">Catch It Where It Happens: Real Time Error Correction During LLM Reasoning</div>
+  <div class="meta">Rotem Elimelech, Michael Shalyt, Ido Kaminer</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>大模型推理单步错会连锁；代码实时校验符号推导，ASyMoB准确率升1.4–5.6个百分点。它不调用验证模型、不占GPU，但当前只覆盖可显式表达的数学步骤。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">LLM 做数学、科学和工程推理时，错误常写得自信且难发现；一个错步会把后续拖进 false premise，继续消耗 inference tokens。现有防护要么只在终答检查、错了从零重启，要么引入 verifier LLM，额外争抢 GPU 并拖慢响应。真正的痛点是检查太晚、太贵，且定位不到出错那一步；符号数学的中间推导已有显式表达式，本可被代码毫秒级检查，却未被用于写中纠错。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法叫 online deterministic verification（在线确定性验证）。摘要披露的回路是：模型边写推导边产生显式表达式，代码检查器/CAS（计算机代数系统）实时校验该步；检查不通过就指出错误并让模型从同一位置继续，而不是重写整段。它不调用 verifier LLM，也不占 GPU，因此与模型解耦。与已有做法差在验证时机和成本：从终答后重启前移到每个可验证步骤；从模型裁判换成确定性代码。摘要未给出更细模块与调度细节。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在 ASyMoB benchmark 上，用三个 open-weights models 测试，online validation 把准确率提升 1.4–5.6 个百分点，对应错误答案净减少 1.8–14.9%；token 使用只增加 6–7%。摘要未给出各模型绝对准确率、baseline 具体名称和逐项数值，也未报告延迟、GPU 占用或统计显著性。因此只能确认符号数学基准上的平均收益，不能外推为所有推理任务均有效。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了：在符号数学推导中，把确定性检查嵌进生成过程，可在少量 token 代价下减少错误传播。因为验证器独立于模型，新模型可直接复用，收益随可检查步骤增多而扩大。结论边界是当前证据限于 ASyMoB 与可显式表达的数学步骤。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把验证范式从“终答后检查/重跑”改成“写中逐步实时检查”；用代码/CAS 做确定性裁判，避免 verifier LLM 抢 GPU；检查失败只回到同一步续写，抑制 false premise 造成的 token 浪费；验证器与模型解耦，可随模型升级直接组合。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少检查器覆盖范围、误报/漏报、错误定位策略、CAS 类型与额外延迟；未给绝对准确率、逐模型结果、baseline 细节和显著性检验；只在 ASyMoB 的 symbolic mathematics 上验证，未覆盖其他推理、工程任务或多模态场景；代码与数据是否开源也未说明。token 增 6–7% 不等于墙钟开销可忽略。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.13107v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.13107v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.14514">
+  <div class="t">Contrastive Discovery: Open-Ended Scientific Discovery over Competing Explanations</div>
+  <div class="meta">Ziang Liu, James J. Kim, Yijia Dai 等 · Accepted at NeurIPS 2026. 55 pages. Project page: https://codiscovery.ai/contrastive-discovery/</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>科学发现智能体把单点假设检验换成互斥竞争解释组打分，同实验预算下解出问题多 67%。它可直接复用已采证据，边界是需先给出互斥且穷尽的解释集。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">LLM agent 做开放式、数据驱动的科学发现，主流做法是 pointwise：把候选假设 h 只与它的补 ¬h 对撞。两个关键问题：证据不支持 h 后，agent 只知道这个解释不太可能，却不知道证据究竟支持哪个替代解释，于是空转或盲试；实验与仿真预算有限，同一批证据无法在多个解释间重新分配置信度，被白白浪费。要补的正是「拒绝之后怎么办」这一步。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法叫 Contrastive Discovery，改动集中在「单位」这一层：把单个假设换成一个 contrast set，即一个科学问题配一组互斥且穷尽（MECE）的竞争解释。流程是先列出对比集；agent 提议实验后，用证据在集合上造成的信念重分配（belief shift）打分，取代单点 surprisal；某个解释的信念占绝对优势即判定问题解决。提议与打分之外不动，因此现有 agent 既能用它重评估已采证据，也能用它引导搜索。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">六个领域上：pointwise 下信念位移最大的候选里，89% 只是 rejection，即只能得出该假设不成立；换成 contrast set 用同一批证据重评，其中 73% 落到某个具体替代解释。用 contrast set 引导搜索，相同实验预算下解出的问题数比 pointwise surprisal 多 67%。盲测中 38 位人类专家在 78% 的已解问题上给出相同解释；在 pointwise agent 否掉假设就停下的问题上，一致率为 82%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：发现 agent 的瓶颈不只在实验设计，也在假设的表示单位；把假设换成显式竞争解释集，能在不增加证据与验证预算的前提下解出更多问题，且解释经人类专家盲测认可。改动很轻，只换提议与打分单位，原则上可迁到任何已有 discovery agent。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一，把开放式发现从「检验单个假设」重构为「在互斥穷尽解释集上重分配信念」。二，用 belief shift 取代 pointwise surprisal 度量实验价值，让被拒假设的信息转为对替代解释的支持。三，只改提议与打分单位，现有 agent 与已采证据可直接复用。四，引入专家盲测，评价从「能否拒绝」推进到「解释是否正确」。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要：contrast set 如何构造（人工还是 LLM 生成、如何保证互斥且穷尽）未披露；六个领域与实验预算规模未列；67% 为相对提升，缺绝对基线；belief shift 的具体度量与统计检验未给；代码数据是否开放未提。方法前提是解释集互斥且穷尽，真实科学问题常难满足。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.14514v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.14514v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.13675">
+  <div class="t">OpticalRAG: Pixel-Space Compression for Token-Efficient Retrieval-Augmented Generation</div>
+  <div class="meta">Senhao Liu, Yuheng Zhang, Chunyu Wei 等 · Accepted at NeurIPS 2026</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>RAG 读长文档费 token（文本最小单位）；OpticalRAG 把页面渲染成图、压到 16 个视觉 token，LongBench-v2 较闭卷基线涨 5.17 分。适合长文档问答。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">RAG（检索增强生成，先检索文档再让模型作答）的瓶颈不在信息量，而在 token 预算：长文档塞进上下文窗口，成本随长度线性上涨。文本压缩看似省钱，但一维 token 序列的承载密度有限，砍掉的细粒度信息不可逆丢失，下游问答再强也补不回来。把页面渲染成图像交给视觉编码器是另一条路，一页文字可压到约一百个视觉 token 且语义损失很小，由此出现纯文本方法够不到的压缩-保真折中；难处在于跨模态对齐通常依赖昂贵的对比训练。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">OpticalRAG 的数据流是：文档渲染成页面图像，由冻结的视觉编码器编码为视觉 token。检索用 Encoder-Bridged Retrieval，把文本 query 的状态经一个投影映射进冻结编码器的视觉特征空间，直接在其中取回视觉 token，该投影与压缩器共享，无需对比训练。随后 Query-Driven Distillation 用轻量 cross-attention 压缩器，把检索到的视觉 token 按 query 蒸馏成少量 query-conditioned prefix token，最少 16 个，再注入 LLM。与已有做法差在两步：压缩发生在像素空间而非一维文本序列；全程冻结视觉编码器，不做跨模态对齐训练。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在 LongBench-v2、BAMBOO、LooGLE-v2 三个长文档基准上，OpticalRAG 只注入 16 个 token，却在三者上都拿到最好的 compression-aware accuracy（CAP，压缩感知准确率）。LongBench-v2 上，它把闭卷的 Qwen2.5-7B-Instruct backbone 提升 5.17 分。摘要只给出这一组数字与 CAP 排名，没有列出各 baseline 的具体分数，也没有 BAMBOO、LooGLE-v2 的绝对提升幅度，以及与文本压缩方法的逐项对比。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">它证明了 RAG 的 token 瓶颈不全是信息密度上限，而是压缩模态的选择问题：把文档搬到像素空间、再蒸馏成十几个 query 相关 token，就能在长文档问答上超过闭卷基线，并在同等压缩预算下强于文本方案。这一结论可推广到上下文吃紧的长文档场景，前提是能接受一次页面渲染与视觉编码的开销。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把 RAG 压缩从一维 token 序列搬到像素空间，给出文本方法够不到的压缩-保真折中；Encoder-Bridged Retrieval 用与压缩器共享的投影，把文本 query 映射进冻结视觉编码器特征空间，省掉对比训练；Query-Driven Distillation 用轻量 cross-attention 压出 16 个 query-conditioned prefix token；全程冻结视觉编码器、不做跨模态对齐训练。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，投影层结构、压缩器训练目标、渲染分辨率与页面切分策略均未披露；结果只报 CAP 排名与 LongBench-v2 的 +5.17，缺 BAMBOO、LooGLE-v2 的绝对数值，也缺与文本压缩 baseline 的逐项对比；16 个 token 在表格、图表、公式类文档上的信息损失边界未验证，非英文与多语言场景未见覆盖。代码有链接，但数据集与渲染管线是否开源，摘要未说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.13675v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.13675v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.13160">
+  <div class="t">How Much of Your VLA Is kNN</div>
+  <div class="meta">Denis Grachev, Damien LaRocque, Omar Moured · 21 pages, 10 figures, accepted to the CoRL 2026 G2A/TAG workshop</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>VLA（视觉到动作的机器人模型）在LIBERO上靠检索示教复用动作块即达91.7%。说明高分可能来自记忆而非泛化，扰动下检索反而最稳。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">VLA 在 LIBERO 上已超 95% 成功率，但没人拆开看：这些分数是策略真泛化到了新场景，还是只把训练示教记得牢。仿真评测便宜、失败代价低，也让「高分」变得廉价；benchmark 饱和后，社区缺少一个能分辨「记忆」与「泛化」的对照基线。论文的动机正是补上这条基线：如果连不训练的检索都能拿高分，那高分本身说明不了太多泛化能力。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">核心是 kNN 检索式策略：把示教观测编码成 key，动作块作为 value 存入库；测试时用当前观测在表示空间找最近邻，直接复用对应动作块，全程不训练策略。作者另提出 Local Action Consistency（LAC，局部动作一致性），一个离线指标，衡量表示空间里相邻观测是否也对应相似的未来动作。九个公开 VLA 在微调前后都被当作「检索键」来对照评测。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">LIBERO 上无策略训练的检索取得 91.7% 成功率；在 LIBERO-Plus 扰动下，检索是所有被测策略中掉点最小的。对九个公开 VLA 的分析显示，微调主要让 vision-language backbone 变成更好的检索键，模型输出的动作仍贴近示教。LAC 与检索成功率走势一致，并能反过来指导检索键的训练。摘要未披露各 VLA 的具体成功率与掉点数值。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">至少在这套 benchmark 上，相当一部分 VLA 成绩可以用「检索加复用动作块」解释，微调增益更多体现在表示质量而非新动作生成。高分与泛化不能划等号，评测应加入检索基线作对照。结论适用范围仍限于 LIBERO 这类仿真示教分布。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把不训练的 kNN 检索做成 VLA 的对照基线，量化了其中的记忆成分；提出 LAC 离线指标，不用跑仿真即可预判检索成功率；用 LAC 指导检索键训练，形成从指标到训练的闭环；公开评测与源码，方便复现。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少各 VLA 的逐项数值、LAC 与成功率的定量相关性、检索库规模与推理延迟开销；实验限于 LIBERO 与 LIBERO-Plus 仿真，无真机验证；「微调只是让骨干变成更好的检索键」对其他机器人形态与真实场景是否成立，摘要无法判断。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.13160v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.13160v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.14488">
+  <div class="t">Is Your Robot&#x27;s Memory Just a Clock? Temporal Shortcuts in Memory-Augmented VLA Policies</div>
+  <div class="meta">Chubin Zhang, Bo An · 38 pages</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>时间采样记忆的VLA（看图出动作的模型）把空等当进展，成功率从47/50跌到16/50。改用事件索引记忆无需重训即可挽回过半损失，边界是仅在RoboMME计数任务上验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">带记忆的 VLA 建记忆的方式很朴素：在整段 episode 里按时间均匀抽帧，再给每帧打上时间戳。可时间不会因为机器人闲着就停下——空等和干活在记忆里几乎长得一样，策略分不清“在等”还是“在做”。示教数据节奏稳定，经过的时间天然能预测任务进度，模型于是学会了看钟而不是看发生了什么。真机上一次暂停、一次手腕抖动，就足以让这套记忆误判任务已经推进。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">不是新模型，而是受控干预诊断。在 RoboMME 的 counting 任务上插入 null event（短暂停或手腕抖动），任务依赖的信息不变，只多出一段空等时间。三组对照：正常执行、插入空事件、把同一批帧从记忆中扣掉；最后一组成功率回升，说明病灶在记忆而非打断。单独 rescale 时间戳即复现：快钟提前停、慢钟重复。修法是 event-indexed memory：按事件而非时钟滴答写入记忆槽。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">RoboMME counting 任务上，插入 null event 后两个任务的成功数从 47/50、44/50 掉到 16/50、10/50。把同一批帧从记忆中扣掉，成功率即回升，可见问题在记忆而非打断。只 rescale 时间戳也能复现：时钟快就提前收工，慢就重复。去掉时间编码不治病，空事件的帧仍占时间槽。脆弱程度跟着记忆索引方式走；按事件索引无需重训即挽回一半以上损失，训练时注入暂停则无效且损害计数。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">它证明的是：按时间采样并在帧上打时间戳的记忆，会把“经过的时间”当成“完成的工作”，一种可被暂停、抖动这类空事件触发的 temporal shortcut。这个结论目前只在 RoboMME 的计数类任务、已公开记忆设计的 VLA 上验证，推广到更长程、更多物体交互的任务仍需额外证据。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把 phantom progress（幽灵进度）命名成一类可复现失败，并用空事件干预把它与打断本身解耦。二是用快钟/慢钟的时间戳 rescale 实验，把病因锁定到 elapsed time 这条捷径。三是发现去掉时间编码无效，指出槽位占用才是关键，把矛头从编码转向索引。四是给出 event-indexed memory 这一免重训修法，并与注入暂停的训练式修补做对比。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺模型规模、null event 时长与次数的敏感性分析，也没有真机实验；结论建立在 RoboMME 的计数任务上，场景偏窄。event-indexed memory 的具体实现、代码与数据是否开源摘要未提，挽回“一半以上”损失的上下界也不清楚。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.14488v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.14488v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.14092">
+  <div class="t">DexSeed: Expanding Human Hand-Object Interactions into Robot Demonstrations for Dexterous Policy Learning</div>
+  <div class="meta">Huaijin Pi, Zehong Shen, Yong Wang 等 · Project page: https://robbyant-research.github.io/DexSeed/</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>DexSeed 将人类手物交互扩展为灵巧机器人演示，省去昂贵遥操作；摘要未给量化结果。适合 VLA（视觉-语言-动作模型）微调与真机部署，覆盖受源数据限制。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">灵巧操作的数据瓶颈在演示：现有做法靠遥操作采集，换物体或换摆放位点都要重新采集，成本高、规模难提升。人类手物数据集是更廉价的替代来源，但现有迁移方法大多只把给交互原样复现到机器人手上，无法泛化到新物体和新位置。要把人类交互变成 VLA（把视觉输入直接映射为动作的模型）训练数据，还缺三样：不同物体几何与抓取位点的覆盖、物理可执行的整臂与手指动作、配套的视觉观测。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">DexSeed 按 grasp mode（抓取模式）组织源序列，并让同组序列共享语言描述；再用 InteractionMesh-based retargeting 加 arm trajectory augmentation，把序列重定向到机器人手，适配不同物体几何与 pick-and-place 位置，同时不破坏局部手物关系；随后用 RL（强化学习）手指策略控制手指，手臂跟踪预计算轨迹，在物理仿真中跑出可执行 rollout。成功的 rollout 会渲染观测、记录动作，并与抓取描述配对，用于微调 VLA（视觉-语言-动作模型）。与已有做法的关键差别是：从复现给定交互，转为保持抓取并扩展轨迹。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要未给具体数值，仅作定性描述；对比对象是“所评估的基线”，名称与规模未列。结论有三条：InteractionMesh-based retargeting 的接触保真度优于基线；整臂执行比基线更可靠，即手指 RL 加手臂轨迹跟踪能在物理仿真中跑通；只用生成演示微调的 VLA 可在仿真与真机执行语言指定的抓取。成功率、接触误差等指标摘要未披露。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇论文证明的是：人类手物交互经“保抓取、扩轨迹”的扩展后，能在物理仿真中执行；由此产出的演示足以单独微调出能听懂语言指令的灵巧抓取策略。结论的适用边界在源数据覆盖范围内，换手型或换物体类别能否成立，摘要没有交代。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把人类手物序列当作可扩展的种子，而不是待复现模板。二是 InteractionMesh-based retargeting 与 arm trajectory augmentation 结合，换物体几何与放置位置时仍维持局部手物关系。三是指尖 RL 加手臂轨迹跟踪，让扩展动作在仿真中顺利执行。四是将渲染观测、动作与抓取描述配对，作为 VLA 微调数据。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少算法细节：InteractionMesh 重定向的损失、arm trajectory augmentation 的采样策略、RL 手指策略的训练规模均未披露。实验只说“优于所评估基线”，未列基线名称、成功率与接触误差数字，真机实验的物体数量与场景多样性也未交代。代码与数据是否开源、跨手型跨物体的泛化边界，摘要都没有说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.14092v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.14092v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.13678">
+  <div class="t">Aeroelastically Constrained Optimal Path Planning of a Fixed-Wing Airborne Wind Energy System</div>
+  <div class="meta">Omid Heydarnia, Jolan Wauters, Tom Lefebvre 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>把弹性扭转约束直接写进周期最优控制，扭转限 0.6° 时平均功率比刚性翼低 31%。方法用准静态模态替代动态模态，可用于多兆瓦固定翼 AWES（空中风能系统）的轨迹设计。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">多兆瓦级固定翼空中风能系统（AWES）靠大展弦比细长机翼在泵升循环（pumping cycle）里反复收放缆绳取能，周期轨迹由专用的参考轨迹优化程序算出。由此产生两个关键问题：这类优化对系统模型高度敏感，模型与真机稍有偏差，算出的轨迹到实际中就失效；同时机翼被当作刚体，结构限制只能靠状态与输入的上界间接体现，翼尖真实的弹性变形与扭转看不到。结果是优化给出的功率可能超出机翼结构允许的范围。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">把机翼弹性变形的上下限直接写进功率最大化的周期最优控制问题。机翼用根部固支模态（root-clamped modes）描述，载荷来自 strip-theory 气动加上机动飞行的重力与惯性力，据此算出各模态广义力。为让问题可解，模态动力学被替换为准静态平衡，以代数约束形式进入每个离散区间：放弃变形的时间导数，换取轨迹优化仍能收敛。与已有做法的差别就在约束这一步——把翼尖挠度和扭转变成显式约束，而不是靠刚性翼加状态上界间接限制。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">测试对象是一架多兆瓦级参考机型。先按刚性翼算出最优轨迹，此时翼尖附近的弹性扭转达到 1.03°。把扭转上限定为 0.6° 后重做优化，最优轨迹的平均功率比刚性翼版本低 31%，主要原因是收缆（reel-out）阶段的缆绳张力被迫降低。为检验准静态假设，作者保留模态动力学做前向仿真，结果显示准静态的挠度与扭转相对动态结果的偏差不到各自上限的 2%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">刚性翼轨迹优化会高估机翼结构限制所允许的功率，具体损失取决于变形上限；把弹性变形显式纳入周期最优控制是可行的，准静态近似在这一场景下足够准。该结论可推广到同类大展弦比固定翼 AWES 的轨迹设计，但不适用于变形时间尺度与循环周期相当的情形。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把翼尖弹性挠度与扭转作为显式约束嵌入功率最大化的周期最优控制，取代刚性翼加状态上界的间接限制。用根部固支模态叠加 strip-theory 气动与重力、惯性载荷，构建可嵌入优化的变形模型。以准静态平衡的代数约束替代模态动力学，保住问题可解性，并用保留模态动力学的前向仿真校验该近似的误差量级。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少优化的离散规模、求解器与收敛性数据，也没有与真机或高保真结构模型的对比；前向仿真只验证准静态近似，未覆盖湍流、阵风等真实风场。31% 的功率损失只对应单一机型与 0.6° 单一下限，其他限值下的敏感性、代码与数据是否开源均未披露。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.13678v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.13678v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.12754">
+  <div class="t">Sliding into Balance: Benefits of a Sliding Payload for Load Distribution and Disturbance Rejection in Dual-UAV Transportation</div>
+  <div class="meta">Jorge Vicente-Martinez, Francisco José Mañas-Álvarez, Edgar Ramirez-Laboreo · 6 pages, 6 figures</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>双无人机吊运改用单绳滑动载荷，可让张力均衡并把可达域扩大一倍；摘要未给出张力数值。适用于双机吊运控制，但低摩擦且无人机间距大时增益受限。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">双无人机吊运通常把载荷用两根独立绳索分别连到两机，或用同总绳长把载荷固定；前者的两根绳张力容易不均，后者又限制载荷可移动范围。张力失衡会让一侧绳索松弛，降低抗扰能力；固定悬挂还使载荷可达域偏小；摘要中的对比正是围绕单绳滑动与 fixed payload 展开。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">论文未给方法专名，核心是 sliding payload：载荷不绑在两根独立绳上，而沿连接两机的单绳滑动。模型为带 viscous friction 的平面无量纲动力学；无人机静止时与同总绳长的 fixed payload 对比平衡态和扰动，再用动态仿真输入 realistic gusty wind profiles，观察两机平均张力失衡。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">对比基线是同总绳长的 fixed payload。解析结果表明：任意相对位置下滑动载荷都能均衡两段绳张力，平衡时不会出现绳索失张力；载荷可达域扩大为原来两倍；除低摩擦叠加无人机大间距外，可容许扰动集合也变大。动态仿真采用 realistic gusty wind profiles，滑动方案的两机平均张力失衡相对固定载荷方案降低；摘要未给出更多精确数值。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明单绳滑动载荷能把两侧张力拉平，并扩大可达域与多数扰动下的可容许范围。该结论支持双机吊运采用滑动悬挂来改善载荷分配和抗扰；但边界是低摩擦且大间距时优势会收窄，且目前只在平面模型和仿真中验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把载荷从两根独立绳改为沿单绳滑动，改变张力分配机制；建立含 viscous friction 的平面无量纲动力学，使滑动运动可分析；以同总绳长 fixed payload 为基线，同时比较平衡、可达域和扰动集合；用阵风仿真评估平均张力失衡，补充了动态场景。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少控制器设计、摩擦参数选取和稳定性证明细节；只给平面模型与仿真，未见真机实验、三维耦合或风场实测；除可达域翻倍外，张力失衡降低幅度等量化对比未披露；代码与数据集是否开源也未说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.12754v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.12754v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.13655">
+  <div class="t">Toward Pseudorange-Based PNT with Starlink: A Mock Fused LEO GNSS Implementation</div>
+  <div class="meta">Samuel C. Morgan, Zacharias M. Komodromos, Wenkai Qin 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>星链伪距定位精度不够，用融合 LEO GNSS（低轨星座兼做导航）架构加波束级星历，95% 误差界达水平 2.33 m、垂直 3.37 m、定时 11.19 ns。仅消费级接收机外场模拟验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">传统 GNSS 星座存在固有脆弱性：信号弱、易被干扰与欺骗，可用性受限；宽带 LEO 星座（如 Starlink）因此被视为韧性 PNT 的备选信号源。但把 Starlink 信号机会式单独拿来用卡在两处：帧定时不规则，难以稳定提取时延观测；公开星历质量差且未校正，轨道与钟误差直接进解。这两条使其精度无法与 GNSS 竞争。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法是一个 fused LEO GNSS 架构的 mock 实现，即模拟「通信为主、导航为辅」的融合系统。数据流分两段：先从实时 Starlink Ku 波段下行链路提取 TOA（time-of-arrival，信号到达时间）观测并转成伪距；再把这批观测与高保真、波束级（beam-specific）的轨道与钟模型联合解算。关键差别在星历这一环——不是回头用质量不佳的公开星历，而是假定星座运营方把 PNT 当第二任务、原生分发波束级轨道与钟产品，从而消掉帧定时不规则与星历误差两个主要误差源。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">外场试验在消费级接收机硬件的约束下完成，接收机本身并非为 PNT 设计。结果为 95% 误差界：水平 2.33 m（半长轴）、垂直 3.37 m、定时 11.19 ns，实际解算误差均落在这些界内。摘要未给出与 stand-alone Starlink 机会式定位或 legacy GNSS 的对照数值，也未说明卫星数、观测时长与基线长度，因此只能确认其达到与 GNSS 竞争的量级，而非具体提升幅度。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：只要星座运营方原生提供波束级轨道与钟模型，Starlink 这类宽带 LEO 星座的 Ku 波段下行信号就足以支撑米级伪距 PNT。该结论目前只在 mock 融合架构与消费级硬件的组合上成立，相当于给出了融合 LEO GNSS 范式的可行性上界估计。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把通信星座的 PNT 能力当作运营方原生提供的第二任务，而非事后机会式利用，提出对应的 mock 融合架构。用波束级轨道与钟模型替代公开星历，直接绕开帧定时不规则与星历质量两个误差源。在实时 Starlink Ku 波段下行链路上完成从 TOA 提取到定位定时的端到端外场验证。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，mock 意味着波束级星历与钟模型是「假定运营方提供」，其真实可得性、更新率与播发开销均未验证；缺少与 stand-alone Starlink、legacy GNSS 的量化对比；未披露卫星几何、观测时长、接收机型号与多径处理细节；样本仅一次外场活动，场景边界不明；代码与数据集未提及开源。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.13655v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.13655v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：（无上一期）</footer>
+</div>
+</body>
+</html>
