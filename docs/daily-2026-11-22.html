@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-22</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-22</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.26511">
+  <div class="t">Direct3D-V3: Latent-Free Diffusion Transformers in the Native Voxel Domain</div>
+  <div class="meta">Shuang Wu, Jiachen Qian, Youtian Lin 等 · The Project Page is: https://dreamtechai.github.io/Direct3D-V3. The Paper is published in ACM TOG (SIGGRAPH Asia 2026)</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>Direct3D-V3 弃 VAE，直接在原生 SDF 体素域跑扩散，摘要未给量化结果。它是无隐空间的 DiT（扩散 Transformer），可做单图生成与生成式重建。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">原生 3D 生成长期围绕 latent diffusion 展开，近期工作把力气花在更强的 VAE 和更复杂的 latent 表示上，从 vecset、triplanes 到结构化稀疏体素。这些路线看似不同，却共享同一前提：先把几何压缩进隐空间，再由生成器建模。问题由此而来：VAE 的重建环节成为瓶颈，压缩后的表示未必保得住局部几何；latent 设计越叠越复杂，训练目标也偏离原生几何；生成结果容易在细节处发糊。Direct3D-V3 要绕开的正是这一步。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Direct3D-V3 是一个 latent-free 的 diffusion transformer（DiT），训练和采样都在 native voxel domain 直接建模 raw SDF voxel grids，不经过 VAE。为让直接体素建模在几何上可靠，它对相邻体素施加 implicit manifold regularization，压制 non-watertight surfaces；预测出的 SDF grid 经 Marching Cubes 转成 mesh，再用渲染 normal losses 从预测 SDF 直接监督模型。它还增加一个辅助任务：预测条件图像的相机参数，促使 DiT 学习从图像观测到 3D 形状的映射。生成式重建时，扩散与 normal-guided refinement 交错，用生成先验补全未观测区域。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要未给出具体数值，仅作定性描述：论文声称该设计去掉了重建瓶颈，把训练置于原生体素域的目标下，生成的 mesh 具有更丰富的局部细节。摘要没有披露所用数据集、对比 baseline、评价指标和提升幅度，也没有给出相机参数预测精度或生成式重建的定量结果。因此只能确认作者给出了方法可行的定性表述，无法判断相对 latent diffusion 路线的具体增益。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇论文要证明的是：3D 生成不必先压进 latent 空间，直接在原生 SDF 体素域上做扩散 Transformer 也能训练和采样；去掉 VAE 后，重建瓶颈被移除，局部细节得以保留。结论可推广到以 SDF 为几何表示的单图生成和生成式重建，但推广强度受限于摘要未给出的量化验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把 VAE 整个拿掉，提出在 native voxel domain 直接建模 raw SDF 的 latent-free DiT 范式。
+用相邻体素的 implicit manifold regularization 抑制 non-watertight surfaces，提升直接体素生成的几何可靠性。
+用 Marching Cubes 把预测 SDF 转 mesh，再以渲染 normal losses 反传监督 SDF，打通预测几何与渲染监督。
+把条件图像相机参数预测作为辅助任务，并把扩散与 normal-guided refinement 交错以支持生成式重建。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少网络规模、训练数据、采样步数与推理成本的细节；没有量化对比，无法判断相对 latent diffusion 的具体增益；摘要未说明代码或数据集是否开源；相机参数预测在真实输入上的鲁棒性、non-watertight 抑制的彻底程度、生成式重建在复杂场景中的失败案例均未验证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26511v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26511v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25926">
+  <div class="t">ROAM-GRPO: Enforcing Reasoning Diversity in GRPO via Routed Off-mode Approach Mining</div>
+  <div class="meta">Jeff Duan, Matt Thomson · Accepted to the NeurIPS 2026 Transitioning from Pre-Training to Post-Training Workshop</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>GRPO 后训练易致推理趋同、pass@k 停滞；ROAM-GRPO 转 off-mode 挖新解法，pass@16 升 4.7%。仅 Qwen3.5-2b 千题验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">SFT 加 RLVR（用可验证奖励做强化学习）已是复杂推理后训练的主流配方，但它会把策略压进单一模式：同一题重复采样，输出几乎一字不差，pass@k 随 k 增大收敛甚至下滑。根子在于奖励只判对错，不判解法是否不同；已被稳定解出的题继续被反复采样刷分，训练信号浪费在重复路径上，模型也就没有动力去找第二条、第三条解法。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">ROAM-GRPO（Routed Off-mode Approach Mining for GRPO）在 GRPO 主轨之外加了一条 off-mode 轨道。训练中先检测已被稳定解出的题目，把它们分流到该轨道；对这些题不再追求答对，而是提示模型给出彼此不同的解题策略；再由 LLM judge 校验每条解法逻辑有效、且与已有解法确有区别；通过筛选的解法最后自蒸馏回策略参数。与原生 GRPO 的差别就在这一步分流：主轨继续用可验证奖励做 RL，off-mode 轨专门生产多样性。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">训练 Qwen3.5-2b，数据为 MATH lvl5 的 1000 题子集。在困难评测集上，相对 GRPO，peak pass@16 提升 4.7%，正确回答的 embedding cosine distance（嵌入余弦距离，用来看解法在语义上是否拉开）约为原来的 1.5–2 倍。摘要未给出与其它多样性增强方法的横向对比，也未报告训练与推理成本。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">RLVR 造成的多样性坍缩可以在训练流程层面缓解：把已解题从重复刷分改为挖掘新解法，再蒸馏回策略，能同时抬高峰值 pass@16 和解法间的语义距离，而不牺牲可验证的正确性。这一结论目前只覆盖可验证奖励的推理任务。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是按掌握程度给训练题分流，已解题改走 off-mode 轨道，形成主轨刷正确率、副轨挖多样性的双轨结构。二是用 LLM judge 同时把关逻辑有效与解法互异，把「多样性」变成可筛选、可蒸馏的训练信号。三是用自蒸馏把探索到的新策略写回参数，而不是停留在采样阶段。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，off-mode 的触发阈值、judge 的判异标准与校准方式、自蒸馏的采样与权重都未披露；验证只在 Qwen3.5-2b 和 MATH lvl5 的 1000 题子集上完成，缺 baseline 之外的横向对比和完整 pass@k 曲线；LLM judge 的调用成本与偏好偏差未量化，代码与数据是否开源亦未说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25926v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25926v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.26617">
+  <div class="t">One Prior, Two Dynamics: Repurposing Video Diffusion Transformers for Self-Supervised Latent Action Learning</div>
+  <div class="meta">Yuxin Jiang, Wenqiang Sun, Jiaqi Li 等 · Project page: https://showlab.github.io/o2laf Code: https://github.com/showlab/O2LaF</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>O²LaF 用同一个预训练视频 DiT 兼学逆、正动力学，从无标注视频学可迁移动作。摘要未给出量化结果，仅在导航与机器人操作的 few-shot 动作探测上称刷新 SOTA。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">机器人要学策略，动作标签却最贵：遥操作、动捕都靠人堆。Latent action learning（从相邻帧的视觉变化里反推动作）想从无标注视频白拿监督，但常见做法是逆动力学、正动力学各训一套、基本从零起步；视频生成模型明明已经学到大量“世界如何变化”的知识，却没被拿来当这份先验；结果学到的隐动作难以跨视觉场景、跨机器人本体迁移。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">O²LaF 的核心原则是 one prior, two dynamics：逆、正两个动力学模型都从同一个预训练 video DiT 初始化，再各自改造成不同角色。逆动力学一侧是 feed-forward transition encoder，配一组 learnable action queries，一次前向就从帧间过渡里读出动作；正动力学一侧是 causal、action-conditioned video generator，按动作条件预测后续画面。两者靠控制信息访问（各自只能看到该看的部分）和一个紧凑 bottleneck 端到端联合优化，动作被迫只保留对预测未来有用的成分；同一框架也换成 V-JEPA2 这类预测表征先验。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要只给结论、未给具体数值：在 navigation 与 robotic manipulation 两类场景上，O²LaF 在 few-shot action probing（只用少量带动作标签样本探测学到的隐动作）上刷新 state of the art，并让 zero-shot action transfer 在跨视觉语境、跨本体时更强。方法不绑定生成式视频先验——把先验换成 V-JEPA2 这类预测表征模型，同样取得有竞争力的表现。但摘要未披露基线与具体提升幅度、评测数据集规模与 few-shot 的 shot 数，无法判断领先多少。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：预训练视频模型可以“一物两用”——同一份先验同时支撑逆动力学与正动力学，就能从无标注视频里学出可迁移的隐动作，不必从零训练。这一范式对生成式视频先验与预测表征先验都成立，说明关键在复用先验，而非某种特定模型。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把预训练 video DiT 的一份先验拆成逆、正两种动力学角色，而不是各训一套；用 learnable action queries 让逆动力学一次前向出动作；以信息访问控制加紧凑 bottleneck 逼出可迁移的动作表示；验证该范式可平移到 V-JEPA2 等表征先验上。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少网络结构、损失权重、数据规模等细节；没有任何量化结果、基线与消融；few-shot 与 zero-shot 的具体设置和失败案例未披露；评测全为离线探测，无真机闭环实验；项目页与代码仓库虽已给出，数据集与预训练权重是否开放未说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26617v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26617v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.26054">
+  <div class="t">Reference-Free Humanoid Skateboarding via Termination-Shaped Reinforcement Learning</div>
+  <div class="meta">Ganeshvar Soenessardien, Michael Przystupa, Kevin Sebastian Luck · 8 pages, 15 figures, Accepted at the 2026 IEEE-RAS 25th International Conference on Humanoid Robots (Humanoids 2026)</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>人形机器人滑板此前依赖示教或系统辨识；本文用终止条件塑形强化学习（用失败条件堵死取巧姿势）让 K1 无参考数据学会滑行，未报量化指标。真机与泛化边界未验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">人形机器人的行走、奔跑已较成熟，但 object-mediated locomotion（借助外部被动物体完成的运动）仍难：滑板要求脚同时与地面和一块会滑会晃的被动板交互。现有两条路都别扭：采集人类示教数据成本高，难覆盖不同板型与地面；用解析转向模型则必须先做 system identification（系统辨识，估计板与接触的物理参数），换板换场地就要重标定。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">整套框架是无模型的深度强化学习，不用示教数据，也不用解析转向模型。策略网络根据机器人状态与滑板状态直接输出 K1 humanoid 的关节目标；训练信号是任务奖励加上 exploit-blocking terminations（阻断取巧的终止条件）：掉踏板脚、双脚都站上板、过度扭身、人与板分离、板晃动过大，一旦触发立即结束回合。这些终止项在训练中的出现比例不断变化，形成从站立控制走向持续人板协同滑行的隐式课程，替代了人工课程与参考轨迹。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要未给出具体数值，仅作定性描述：作者称 K1 humanoid 在 model-free 设置下学会滑板，且不使用示教等先验数据。摘要没有给出成功率、滑行距离、速度、训练步数或 sim-to-real 迁移效果，也没有与模仿学习、解析转向模型两类 baseline 的对比数字；验证平台（仿真环境名称、是否真机）同样未披露。因此无法判断相对已有方法的提升幅度。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了：仅靠任务奖励加一组阻断取巧的终止条件，无参考数据的人形机器人也能从站立控制过渡到与被动板持续协同前进。真正的洞见是把课程设计从奖励塑形搬到终止条件上；该思路可迁移到其他 object-mediated 任务，但迁移效果尚未验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">1）无参考范式：不依赖示教数据，也不用需系统辨识的解析转向模型；2）新机制：用 exploit-blocking terminations 在回合层面直接禁掉取巧姿势，而不是靠奖励惩罚慢慢压；3）新流程：终止条件占比随训练自然变化，自动形成从站板到滑行的进阶课程。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少奖励权重、终止条件阈值、观测与动作空间、训练规模等细节；无量化指标与 baseline 对比，也未说明仿真平台与真机实验；代码与数据未见开源说明；场景限于 K1 与特定滑板，换板、换地面、抗扰动的边界未知。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26054v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26054v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25336">
+  <div class="t">MoRE: Mixture-of-Experts for Multi-Physics Robotic World Models</div>
+  <div class="meta">Ziyu Zhu, Shaowei Liu, Albert J. Zhai 等 · Accepted to CoRL 2026. 19 pages, 8 figures</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>3D 世界模型难以统一建模异构物理动力学，MoRE 用运动专家混合分治，摘要未给出量化结果。它面向多种机器人操作任务，效果取决于混合仿真与真实数据的训练质量。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">机器人操作需要世界模型预测物体在动作与物理规律下的演化，但刚性、可变形、抓取等交互的动力学差异极大；现有 3D 世界模型用单一网络拟合所有物理机制，容易在模式切换时失真；混合仿真与真实数据训练又进一步放大了分布差异。这类任务还面临数据来源异构的问题：仿真数据便宜但存在域差距，真实数据昂贵且覆盖有限。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">MoRE 全称 Mixture-of-Experts for Multi-Physics Robotic World Models，核心是把机器人交互显式分解为刚性、可变形、抓取三类物理机制，各配一个运动专家（motion expert）。共享的 3D 世界模型骨干根据交互类型路由到不同专家，使单一模型既捕获多样物理行为，又保留各机制先验。训练采用仿真与真实世界混合数据，推理时与模型预测控制（MPC，每一步重新规划动作的控制方式）集成，支撑多种操作任务。与统一网络相比，差异在于按物理机制分治而非让所有参数共享。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要仅作定性描述，未给出具体数值：MoRE 在跨物理机制上提高了预测精度，并因此带来更强的真实世界 MPC 性能。对比的 baseline、仿真平台名称、真实机器人平台、训练数据规模以及预测误差的具体指标均未披露；摘要也未说明刚性、可变形、抓取三类机制各自的精度提升幅度，以及 MPC 任务的成功率变化。因此只能确认作者报告了正向趋势，无法核对提升幅度和统计显著性。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了按刚性、可变形、抓取三类机制分解运动专家，可以让单一 3D 世界模型在异构物理交互上取得更好的预测精度，并将这一提升传导到真实世界 MPC 操作性能。结论目前限定在作者选定的三类物理机制和混合数据训练设定内，能否扩展到更多机制尚待验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把机器人交互按物理机制显式分解为刚性、可变形、抓取三类，让世界模型分治而非一网通吃；二是用运动专家混合在单一 3D 世界模型中保留各机制先验；三是把 MoRE 与 MPC 集成为闭环，用预测支撑真实操作任务。这三点共同构成新的建模范式与部署流程。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少各物理机制的精度数字、baseline 清单、真实机器人平台与任务设置、训练数据规模；摘要未说明三类专家如何路由、是否在未见机制上退化，也未给出 MPC 任务的成功率与失败案例分析。代码、数据和项目网站虽已公开，但复现结论仍需等待完整论文与实验细节。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25336v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25336v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25667">
+  <div class="t">CauSyncVLA: Causal Latent World Modeling for Asynchronous Robot Control</div>
+  <div class="meta">Xu Pan, Chubin Zhang, Xingrui Yu 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>CauSyncVLA 修正异步 VLA（视觉直接出动作的模型）的过期感知，LIBERO-10 上达 93.8% 成功率、5.04 倍推理吞吐。目前仅在仿真基准验证，真机未披露。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">VLA 控制里，视觉推理慢于控制频率，机器人必须在上一次视觉结果没算完时就开始出动作。常见做法是让计算与执行重叠，先拿旧感知顶着。代价有两条：一是感知记忆过期，依据的是几十毫秒乃至更早的画面，对位敏感的任务容易偏；二是动作块断裂，新旧 chunk 交接处不连续，轨迹抖动、闭环鲁棒性下降。已有异步方案多半去补图像或物理状态，代价高，且补出来的东西和“下一步该怎么动”并不直接挂钩。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">CauSyncVLA 是异步双系统控制器，核心为 Causal Latent World Model 与 Predictive Flow Warm-Starting（PFWS）。世界模型不预测像素、也不预测物理状态，而是以延迟的视觉锚点和已执行的状态-动作历史为输入，推断“此刻”的感知记忆，并用 action-sensitive distillation 监督，使预测保留冻结专家模型的控制响应。更新后的记忆作为条件，PFWS 把尚未执行的动作段对齐到当前时刻，单步 flow 修正即可，不需要额外训练。与已有做法相比，它补的是潜空间记忆而非图像，纠偏落在动作段而非重采样。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要只给出 LIBERO-10 上的两项量化结果：成功率 93.8%，推理吞吐为 5.04 倍。作者同时称闭环鲁棒性与机器人运动平滑度得到改善，但未给出 baseline 名称与对照数值，也没有不同延迟档位下的曲线和平滑度的具体度量。因此可核对的就是 93.8% 与 5.04 倍这两个数，其余均为定性描述。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">它证明了异步执行不必以感知时效为代价：把记忆补到当前、把动作段接上，就能在高吞吐下保住成功率。这一结论目前限于 LIBERO-10 这类桌面操作仿真基准，尚未外推到真机与高动态场景。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把世界模型从像素或物理状态预测搬到感知记忆层，输出直接服务控制；用 action-sensitive distillation 让预测保留冻结专家的控制响应，而不是只做视觉重建；PFWS 在推理时单步修正动作段，无需额外训练即可复用已训好的策略。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要：延迟设置、baseline 数值、消融与失败案例都缺失；只在 LIBERO-10 单一仿真基准上验证，没有真机实验；5.04 倍吞吐对应的硬件条件与延迟分布未披露；代码与模型是否开源未知；遮挡、高动态目标等场景是否成立无法判断。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25667v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25667v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.25558">
+  <div class="t">Communication-Aware UAV Spatio-Temporal Relay Cooperation and Planning in Complex Urban Environments</div>
+  <div class="meta">Haoyu Zhang, Yingjie He, Zehao Zhuo 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>城市无人机盲区，ST-RCP（时空中继协同规划）让峰值下降段覆盖较基站基线升29.93%。适合低空物流与应急中继，但摘要未给完整场景与实机验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">城市低空物流、应急等任务中，无人机在空间异质通信环境里移动，会出现随时间变化的通信中断，影响任务执行与飞行安全。原有思路多依赖地面基站或专用中继无人机；前者在复杂城区易受遮挡，后者需额外资源。更具体的痛点是：盲区随 UAV 轨迹动态变化，难用静态布点解决；配送任务有自身航线和时限，中继选择必须与任务规划耦合；缺少基础设施时，还要把现有配送 UAV 变成机会中继。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">ST-RCP（Spatio-Temporal Relay Cooperation and Planning）先预测有限时域内的通信盲区事件，再构建 helper-event compatibility graph，把配送 UAV 与断连事件时空匹配显式化，最后联合优化 relay selection、obstacle-aware trajectory replanning 和 communication-aware scheduling。多个 planner 被评估，以权衡覆盖、计算成本与能耗。与依赖额外基础设施或专用中继不同，它把机会式中继、避障重规划与通信调度纳入同一规划链路。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">实验基于真实交通场景，将 ST-RCP 与基站基线及使用 1、2、3 架专用中继 UAV 的配置对比。峰值场景中，ST-RCP 使下降段通信覆盖率较基站基线提升 29.93%，较 1、2、3 架专用中继配置分别提升 27.38%、22.02%、15.20%。过程灵活性分析显示，预测式任务感知中继扩大了可行中继资源池，改善通信连续性，同时保持配送任务可行。摘要未给覆盖率的绝对值、能耗与计算成本的具体数值。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了：在城市复杂环境中，利用配送 UAV 做机会中继并把盲区预测、轨迹重规划与通信调度联合起来，能在峰值场景提升下降段通信覆盖，并维持配送任务可行。结论可推广到低空物流、应急响应等可调度无人机充当临时中继的场景；超出摘要所述真实交通场景与峰值条件的普适性仍需验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把配送 UAV 作为机会式中继，不依赖额外通信基础设施；二是用有限时域盲区预测和 helper-event compatibility graph 组织帮手与断连事件；三是联合 relay selection、obstacle-aware trajectory replanning 与 communication-aware scheduling；四是比较多类 planner，显式分析覆盖、计算成本与能耗权衡。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少盲区预测模型、兼容图构建和联合优化求解的算法细节；未披露覆盖率绝对值、能耗与计算成本对比；未说明真实交通场景规模、是否开展真机实验，以及代码或数据集是否开源。结论边界主要在摘要所述城市场景与峰值条件。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25558v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25558v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.26270">
+  <div class="t">Chance-Constrained Joint Beam Hopping Scheduling and Bandwidth Allocation for LEO Satellites</div>
+  <div class="meta">Olfa Ben Yahia, Jean-Francois Frigon, Brunilde Sanso 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>频谱效率预测有误差时SLA（可靠性承诺）会被违反，该工作用机会约束联合优化波束跳变与带宽。它把概率约束转成二阶锥，按目标可靠度分配资源；摘要未给量化结果。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">多波束 LEO 卫星用固定波束和静态带宽服务地面小区，业务需求却随时段和位置剧烈变化，资源常一边闲置一边积压；beam hopping（波束跳变，每时隙只点亮部分波束）靠分时复用缓解矛盾。卡点在两处：现有 BH 优化把预测频谱效率当真值排布，误差一大就击穿 SLA（服务等级协议，对用户的满足率承诺），运营商拿不到概率保证；调度与带宽分配还常分开求解。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法是一套 SLA-aware chance-constrained BH 优化模型：波束调度与带宽分配进同一问题，目标最大化预期交付流量，约束为每个小区需求被满足的概率不低于目标可靠度。关键一步是把频谱效率预测误差建成高斯分布，含概率的 SLA 约束随之解析改写成确定性二阶锥约束，随机规划退化为可解的凸问题。与已有做法相比，差别就是最后这一步：误差不再被忽略，而是直接进约束。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要未给出具体数值，只作定性描述：没有交付流量绝对值、没有可靠度达标百分比，也没有与 baseline（对比方法，如按预测值确定性排布的 BH 或贪心调度）的逐项差距。可确认的是，在业务负载上升、频谱效率不确定性增大时，所提方法仍把 SLA 违反概率压在目标可靠度以内，同时保持小区间公平性与资源分配效率；验证方式为仿真评估，未提及硬件或在轨试验。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：把 SLA 可靠度写成机会约束并化为二阶锥，就能在波束跳变调度中显式控制违约概率，而不是事后寄望预测够准。可靠性因此从验收指标变成可调的设计参数，代价是模型求解更重。该结论适用于预测误差可近似高斯的单星多波束场景，多星协同尚未覆盖。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一，把 SLA 可靠度显式写进优化目标与约束，让波束跳变从确定性排布变成机会约束范式。二，波束调度与带宽分配耦合进同一问题求解，扩大了可行域。三，用高斯误差假设把概率约束解析化成二阶锥，使原本难解的概率模型变得可算。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少可核验细节：高斯误差假设在真实信道下的拟合程度、与 baseline 的量化差距、求解复杂度与可扩展规模、公平性指标定义都未披露；代码与数据集是否开源、有无在轨验证也不清楚。场景边界限于单星多波束仿真，多星协同未涉及。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26270v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26270v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.26454">
+  <div class="t">Profile-Anchored Control: Velocity Shaping with Exact Disturbance Rejection and Transient-Free Replanning</div>
+  <div class="meta">Christian Fredrik Sætre, Morten Dinhoff Pedersen</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>PACER（把速度剖面既当规划又当控制目标的方案）能在未知增益和负载下精确抑制扰动；剖面可在速度、加速度、加加速度限制下无瞬态替换，摘要未给出量化结果。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">运动控制里，接近目标的过程和是否到达同样重要：速度与减速必须落在执行器、安全与舒适度限制之内。位置相关速度剖面（profile，把速度写成位置的函数）正是描述这类要求的自然工具，但落地卡在几处：负载与扰动未知，控制器难以回到标称运动；中途更换剖面会引入瞬态抖动；限速、限加速度、限加加速度的重规划往往只能手工试凑。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">PACER（profile-anchored control with exact rejection）把速度剖面的平方同时当作规划对象与控制锚点。它由两支律组成：静态律针对标量二阶系统，在输入增益未知而下界已知时保证一致全局渐近稳定，并在局部齐次性下给出有限时间收敛；动态律作用于一阶系统，在扰动变化率有界时提供同类保证，并支撑 PACER 的精确抑制。剖面中途替换被写成带速度、加速度、加加速度约束的凸规划。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要只给出一个验证场景：仿真电梯。摘要未给出具体数值，仅作定性描述，没有说明收敛时间、扰动抑制残差、跟踪误差或重规划耗时的量化结果，也没有列出对比 baseline、测试工况数量或参数扫描范围。因此无法判断 PACER 相对既有剖面对齐控制的实际增益幅度。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文要证明的是：同一个位置相关速度剖面既能生成运动计划，也能作为控制器设计的参照，从而在有限时间内从未知增益与负载中恢复标称运动，并在运动中替换剖面而不引入瞬态。该结论目前停留在标量二阶、一阶系统与仿真示例层面，多轴耦合与强非线性执行器尚未涉及。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">其一，把剖面的平方统一用于规划与控制，省去两套模型之间的转换；其二，把精确扰动抑制与有限时间恢复纳入同一个锚定结构；其三，把限速、限加速度、限加加速度的剖面重规划形式化为凸问题，使中途换剖面无需瞬态。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少扰动观测器结构、齐次性阶数与稳定裕度的推导细节；没有与 PID、前馈或 MPC 类方法的量化对比；只在仿真电梯上验证，缺真机实验、多场景与极端扰动测试；也未提及代码或数据集是否开源。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26454v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26454v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：<a href="https://guff99.github.io/paper-radar-site/daily-2026-11-21.html">2026-11-21</a></footer>
+</div>
+</body>
+</html>
