@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-21</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-21</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.26627">
+  <div class="t">RL Post-Training in Diffusion Transformers Is Activation Steering</div>
+  <div class="meta">Tuna Han Salih Meral, Kaan Oktay, Alec Helbling 等 · Project page: https://rl-is-steering.github.io</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>RL后训练扩散Transformer的增益多可由固定偏移复现，0.29M参数恢复90.0–96.3%奖励。固定steering vectors适合归因检查点，未必替代完整RL。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">RL post-training 已被用来提升 diffusion transformer 的视觉质量、文字渲染和组合准确度；但文字渲染、多物体组合等能力本身依赖 prompt，直觉上需要学习复杂的输入相关变换。具体卡点有三：难以判断增益来自真正的新能力，还是把预训练生成器推向已有能力；权重式 RL（如 SD3.5-M 的 LoRA）参数达 18.8M，归因和复现成本高；缺少一个刻意简单的输入无关基线来隔离偏移贡献。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法可概括为 activation steering：冻结 base model，在每个 block output 上加一组固定 steering vectors；这些向量对所有 prompt、token、sampling seed 完全相同。拟合时不让 reward 进入目标，而是匹配 public RL-tuned checkpoint 的 velocity predictions。SD3.5-M 上这组向量只有 0.29M 参数，比 18.8M 的 RL-tuned LoRA 少 65 倍。另一条路径从零初始化，用 online RL 直接训练这些向量，观察其单独能带来多少 reward 增益。与已有 RL 的差别在于不学输入依赖变换，只学常量偏移。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在六个 RL-tuned 图像模型上，固定向量恢复 90.0–96.3% 的 reward gains；两个 RL-tuned 视频模型分别恢复 89.8% 和 111.9%。在 SD3.5-M 上，零初始化并用 online RL 训练后，向量单独在 text rendering（OCR）和 human preference（PickScore）上超过 weight-based RL 的 reward gains。参数对比为 0.29M 对 18.8M，少 65 倍；拟合目标匹配 velocity predictions 且不含 reward。摘要未给出其他数据集、训练细节和统计显著性。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：policy-gradient RL post-training 的大部分增益可由一个与输入无关的常量激活偏移解释；它把预训练生成器 steer 到已能计算的方向，而不必学习新的输入依赖变换。该结论支持用 steering vectors 做 RL 检查点归因和低成本复现，但能否推广到所有 diffusion transformer、奖励和训练规模，摘要未证明。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">创新点：用固定 steering vectors 作探针，隔离输入无关偏移；以匹配 velocity predictions 而非 reward 来拟合 RL 检查点；参数比 RL-tuned LoRA 少 65 倍；零初始化在线 RL 训练的向量在 SD3.5-M 的 OCR 与 PickScore 上超过 weight-based RL 增益。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要与项目页，缺少 steering vectors 的层选择、拟合损失细节、训练超参和完整评测协议；六个图像与两个视频模型之外的泛化未验证；111.9% 的恢复率、跨 seed 稳定性和统计显著性未说明；是否开源代码与数据也未披露；不能据此断言固定偏移可替代完整 RL 后训练。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26627v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26627v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.26450">
+  <div class="t">A CPU Inside an LLM: Zero-Gradient Compilation of Exact Circuits into Pretrained Weights</div>
+  <div class="meta">Tanmay Sah · 27 pages, 3 figures, 24 tables</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>预训练模型算不准多位数算术，本文零梯度把精确电路编译进权重，6位数算术达99.17%。不用训练样本，但要改模型结构并加 sidecar 内存。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">预训练语言模型做多位数精确算术一直不可靠。现有两条路都卡住：梯度微调（如 LoRA）要上万条样本，泛化仍然差；外挂工具解释器靠运行时钩子调用外部计算，权重里没有这项能力，离线或受限部署时用不上。两者都难给出逐位精确的误差保证，还容易损伤原有自然语言能力。零样本、无钩子地把确定性计算写进权重，基本是空白。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法名 zero-gradient circuit-grafting primitives，由三套解析机制加一个 5 阶段自动编译器组成。Mellin-GLU 求积装在无 bias 的 SwiGLU/GeGLU 上，把未知的 per-token RMSNorm 缩放转成 log-spaced gate grid 上的平移（&gt;250× 动态范围，带 IEEE 754 误差界）；Indefinite-RoPE self-sink attention 与 GatedDeltaNet 位移做跨 token 尺度抵消；再用 d→d+K 宽度扩展加 sqrt(d/(d+K)) 范数补偿、Base-1000 BPE 输出与差分 tied unembeddings 落地。编译器综合出常数 TC^0 深度的 4-8 位有符号加减乘电路。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">6 位数算术（N=1,200，BF16）上，IBM Granite 4.2 3B 的 ALU-prefix 准确率 99.17%（加 FP32 sidecar 到 100%），Alibaba Qwen 3.5 4B 为 100.00%，激活非零参数占比 ≤0.036% 与 ≤0.057%，句中被截断后恢复率 98%-100%。同任务 12.8K 样本 LoRA 只有 42.2%/61.7%，行内续写 0%。3-literal Boolean（N=1,728）与 5-bit Majority/Parity 均 100%。A100 显存 7.89/10.65 GiB，INT8/INT4 加 FP32 sidecar 降至 4.60/8.14 GiB；14/14 预注册 &gt;2K-token Tango splits 全过。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">确定性计算可以作为闭式结构直接嫁接进预训练权重，不需要梯度、样本和运行时钩子，自然语言能力也保住了。说明「权重里造一台 CPU」在 4-8 位有符号整数加减乘这一档已经成立，误差可界、显存可控。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把算术注入从训练问题改造成解析构造问题：零样本、零梯度、零运行时钩子。用 Mellin-GLU 求积把归一化漂移转成 gate 网格平移，绕开未知的 per-token 缩放。跨 token 尺度抵消加宽度扩展，让定长电路塞进现有层而不改主干。5 阶段编译器把 4-8 位电路自动综合并附误差界。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要：编译器实现、误差界推导、电路容量上限均未披露。算术只覆盖 4-8 位有符号加减乘，没有除法与浮点。需要改动结构（宽度扩展、差分 unembedding）并额外占 sidecar 显存。评测限于少数模型和合成任务，代码与真实业务场景验证都缺。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26450v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26450v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25123">
+  <div class="t">Forget Freely, Grep Later: Lossless, Index-Free Memory for Long-Horizon LLM Agents</div>
+  <div class="meta">Ziyan Yang, Taiwei Shi, Jieyu Zhao · 17 pages, 6 figures, 6 tables. Ziyan Yang and Taiwei Shi contributed equally</div>
+  <div class="tldr fail">总结生成失败，点链接看原文</div>
+  
+  <div class="links"><a href="http://arxiv.org/abs/2611.25123v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25123v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.25251">
+  <div class="t">WEVO: World Model-Enabled VLA Optimization for Whole-Body Loco-Manipulation</div>
+  <div class="meta">Qianzhong Chen, Muyuan Lin, Yuyin Sun 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>WEVO 用视频世界模型做 VLA（视觉直出动作的模型）后训练，成功率 23.3%→75.0%。高于真机 RL 的 48.3%，但每个任务仍需 20 条真机 rollout 对齐世界模型。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">VLA 策略通常靠模仿学习冷启动，想再往上走要靠 RL；但 humanoid 在真机上做探索代价高、易摔坏硬件，一次试错就是实打实的机器损耗。退到仿真里训练又撞上另一堵墙：仿真与真机之间残留的 sim-to-real gap 会被 RL 精确地利用，策略学会的是仿真里的捷径，迁移到真机就失效。结果是真机不敢练、仿真练了不保真，whole-body loco-manipulation 这类依赖接触动力学与视角变化的全身任务尤其吃亏。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">WEVO 把训练场换成 action-conditioned video world model。先在仿真 manipulation 与 locomotion play data 上预训练 WM，使其能预测接触动力学与视角变化；再由合成示教训出的 VLA 在真机每任务跑 20 条自主 rollout，把 WM 校准到部署观测分布。随后 VLA、whole-body controller（WBC）与 video WM 组成闭环 RL 环境：VLA 出动作，WBC 执行，WM 生成下一帧，dense progress reward 给出稠密反馈更新策略。与仿真 RL 的差别是环境被真实数据校准，与真机 RL 的差别是探索不出机器。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在三个真实机器人任务上验证。仿真 play data 对每一项被评估的 WM 指标都有提升，也带动下游策略成功率上涨，但摘要未给出这项消融的具体数值。主结果是 video WM 内的 RL 把三任务平均成功率从 23.3% 提到 75.0%，同一批任务上用真机做 RL 只到 48.3%。也就是说 WM 内训练的效果约为真机 RL 的 1.5 倍，而真机采样量被压到每任务 20 条 rollout。摘要未披露各任务单独成功率与方差。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是 video WM 能充当与部署对齐、又足够便宜的 RL 环境，让 humanoid VLA 不冒真机风险就大幅提升成功率。仿真与 WM 互补：仿真给初始化与覆盖，WM 给部署对齐的精修。更复杂的接触任务与更长时程能否推广，摘要未给证据。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把 action-conditioned video world model 直接做成 VLA 的闭环 RL 环境，而不只做视频预测。用少量真机 rollout 校准 WM，绕开 teleoperation 示范采集。让仿真 play data 同时服务 WM 预训练与策略初始化，形成 sim→WM→real 的数据复用链。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺 WM 预训练数据规模、rollout 采集与奖励设计细节。只给三任务平均值，没有单任务成功率与方差，也没量化 WM 预测误差与策略收益的关系。真机 RL 的采样成本未披露，20 条 rollout 能否对齐不同场景未做验证。摘要给出项目网站，但未说明代码与模型是否开源。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25251v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25251v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25683">
+  <div class="t">TipDex-VTLA: Learning When to Refine Actions with Touch for Dexterous Manipulation</div>
+  <div class="meta">Xudi Ge, Yepeng Liu, Haifeng Liu 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>光照变化致动作漂移，TipDex-VTLA把真实任务全任务成功率做到87.5%/73.8%。它用视觉可靠性与触觉预测校验来门控动作修正，面向未见光照下的灵巧操作。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">光照变化会让灵巧操作出现动作漂移，即使物理状态没变；原有VTLA（视觉—触觉—语言—动作策略）虽已把触觉纳入策略，但关键卡点仍在“何时用触觉、如何用触觉修正执行中动作”。直接融合触觉不等于能在未见光照下稳定决策；若修正时机或幅度失当，还可能干扰未执行动作。摘要把问题定位为变化视觉条件下触觉修正的时机与方式，而非单纯增加触觉输入。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">TipDex-VTLA由VASE与TACE两个模块组成。VASE（Visual Action Sensitivity Estimation）借助冻结参考策略对光照扰动的动作敏感性，学习视觉动作可靠性；TACE（Tactile Anticipation and Correction during Execution）在匹配时刻比较预测触觉与实测触觉，把触觉差异和视觉可靠性结合，门控未执行动作的有界特征修正。数据流是先估计视觉可靠性，再用触觉预测校验决定是否修正、修正多少；与已有VTLA直接融合触觉不同，它把“何时修、如何修”变成执行时的门控决策。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在四个真实世界灵巧操作任务和UniVTAC仿真基准上评估，训练数据仅来自正常视觉条件。摘要给出的真实任务平均全任务成功率为正常光照87.5%、挑战性未见光照73.8%，并称显著优于部分state-of-the-art方法。但摘要未披露对比方法的名称与具体数值，也未给出UniVTAC仿真分数、逐任务成功率、方差或失败案例。可确认的验证条件是normal与challenging unseen lighting两类真实光照，以及仿真基准的定性提及。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了在正常视觉条件下训练、执行时用视觉可靠性与触觉预测校验门控动作修正，可把真实任务在未见挑战光照下的全任务成功率做到73.8%。结论目前只覆盖四个真实任务与UniVTAC基准，尚不能外推到更广物体、光照或长时操作。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是新机制：VASE用冻结参考策略对光照扰动的动作敏感性来估计视觉可靠性。二是新流程：TACE在匹配时刻比较预测与实测触觉，并用差异与视觉可靠性门控未执行动作的有界修正。三是新决策方式：把触觉从直接融合改为决定何时、如何修正的校验信号。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少VASE与TACE的实现细节、门控阈值和有界修正范围；未给baseline名称、仿真数值、逐任务结果与方差；未验证更多光照类型、物体和长时任务；数据与代码仅称将发布，当前不可用。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25683v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25683v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25656">
+  <div class="t">A$^2$-VLA: Adapting Vision-Language-Action Policies to New Tools through Agentic Affordance Discovery</div>
+  <div class="meta">Chenyuan Zhou, Chaoyi Huang, Zibo Wang 等 · 16 pages, 6 figures. Includes appendices</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>A²-VLA 让智能体发现功能区域，助策略跨工具迁移，真机成功率较 π0.5 升 30.7 个百分点。仿真跨工具轨迹重定向达 86.1%，验证限于少量源工具与三类真机任务。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">不同形状的工具可能功能相近，但把操作技能从源工具迁到新工具不能只复制轨迹；机器人需要理解工具几何与具体任务的关系，并调整操作策略。痛点集中在三处：跨工具的共同可供性（工具上可被利用的功能区域及其关键几何属性）难以预先定义；遥操作演示往往只覆盖少量源工具，新工具样本稀缺；真机反复试错成本高、迭代慢。核心难点正是发现并验证跨工具的共同可供性。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">A²-VLA 由具身智能体与 VLA 策略（把视觉输入变成机器人动作的模型）组成，把工具可供性当作可检验、可修正的假设。先用少量源工具的遥操作演示在仿真中重建场景；智能体自主确定可供性特征，即功能区域及其几何属性，并发展可供性提取技能；随后在重建场景中自主实验、迭代精炼，验证通过的提取技能进入可复用技能库，供未见工具使用。功能区域特征编码后作为条件输入，在训练和推理时注入 π0.5 主干。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要给出的评估分两部分：重建场景中的可供性可靠性，以及未见工具上的真机任务成功率。基于可供性的仿真跨工具轨迹重定向成功率为 86.1%。在三个真机工具使用任务上，A²-VLA 相比 π0.5 把任务成功率提升 30.7 个百分点。摘要只给出这一相对提升，没有披露各任务的绝对成功率、任务定义、源工具与未见工具数量，也没有列出 π0.5 之外的对比基线。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">A²-VLA 说明可供性不必手工写死，可由智能体在重建场景中提出、验证并沉淀为技能库，再把功能区域特征接入 VLA 策略。少量源工具演示因此能迁移到未见工具，真机成功率较 π0.5 提升 30.7 个百分点。结论目前适用于形状不同但功能相近的工具使用任务，更大工具集与更复杂任务仍待验证。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把工具可供性建模为智能体可构建、测试、修正的假设，而非人工预设；二是让智能体在仿真重建场景中自主实验，精炼功能区域及其几何属性与提取技能；三是把验证通过的提取技能存入可复用技能库，面向未见工具复用；四是把功能区域特征作为条件输入注入 π0.5，形成可供性表征与 VLA 策略的接口。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少可供性特征编码、技能库表示、自主实验成功判据等算法细节；真机只报相对提升，未给绝对成功率、任务定义、源工具与未见工具数量、演示条数；仿真重建保真度的影响、失败案例、统计显著性与计算开销也未披露。代码与数据是否开源未知，结论边界限于少量工具的三类真机任务。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25656v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25656v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.26048">
+  <div class="t">AGE-Capture: Autonomous, General, and Efficient UAV Capture for High-Fidelity Scene Reconstruction</div>
+  <div class="meta">Xiaofeng Jin, Ningbo Bu, Matteo Frosi 等 · 18 pages, 20 figures, 11 tables</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>AGE-Capture 让 UAV 自主取景重建，PSNR 比在线基线高 3.30–3.53 dB。九个真实场景验证了机载闭环，但仍受算力与运动约束。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">这类工作原先多按覆盖率或信息增益挑选下一个视角（NBV，下一个最佳视角），把「看没看过」当成目标，与最终能重建多好脱钩；换一套传感器（深度相机换 RGB）就要重写采集流程；飞行预算有限，却缺少可信的「何时可以停」判据。真机上的痛点很具体：区域之间来回飞、等规划器出解、对同一片区域重复观测，都在消耗任务时间和电量；仿真里调好的策略搬到机载算力上又常常跑不动。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法名 AGE-Capture，核心是把可渲染性做成轻量在线状态：评估候选视角效用、判断任务完成度、并直接指导飞行执行。与已有流程的差别在两处解耦——几何探索与重建观测分开；用统一的 camera-ray 接口把不同测距传感器和 RGB 相机模型接到同一条重建驱动管线上，换传感器不必换流程。reconstruction-frontier 视角刻画区域的残余采集价值，用于区域筛选与自主终止；dynamics-aware 分层规划配异步事件驱动采集，压缩跨区空飞、等规划的时间与重复观测。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">十个室内外仿真场景中，AGE-Capture 的平均峰值 PSNR 比在线基线高 3.30–3.53 dB，平均只花掉通用任务时间预算的 58.2%；平均峰值 GPU 显存占用比同一批基线低 91.0%–93.3%。不同传感器配置的实验验证了共享采集管线的适应性，九个真实场景的飞行进一步说明机载闭环可在实际计算与运动约束下运行。摘要未给出单场景细分数值与真实场景的重建精度。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明了以可渲染性作为在线效用信号、并配合 reconstruction-frontier 自主终止，能在更短任务时间和更低显存下换到更高的重建质量。几何探索与重建观测解耦后，同一采集管线可跨传感器配置复用。这一结论目前成立在资源受限的机载主动采集场景内。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">用可渲染性在线状态统一候选视角效用评估、任务进度判定与飞行执行引导。
+提出 reconstruction-frontier 视角来量化残余采集价值，支撑区域筛选与自主终止。
+解耦几何探索与重建观测，并以统一 camera-ray 接口让多类传感器共享采集管线。
+以 dynamics-aware 分层规划加异步事件驱动采集，压低跨区运动与等待开销。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要，缺少在线状态的具体定义与更新方式、终止阈值设定、单场景结果与失败案例；对比基线只覆盖在线方法，未与离线覆盖规划比较；九个真实场景只说明闭环可运行，未给出重建精度和不同传感器配置的定量对照；代码与数据集是否开源未披露；场景限于室内外，动态物体与续航边界未涉及。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.26048v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.26048v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.25611">
+  <div class="t">Onset of three dimensionality in transonic shock boundary layer interaction over a natural laminar flow airfoil</div>
+  <div class="meta">Abhijeet Guha, Aditi Sengupta</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>用三维高保真模拟加 CETE（可压缩拟涡能输运方程），追踪 NLF 翼型跨声速 SBLI（激波—边界层干扰）的三维化起始；摘要未给出量化结果。结论可用于判定二维模拟何时失效，但仅限短时演化与三个工况。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">NLF（自然层流）翼型靠大面积层流减阻，但激波一旦落到层流区，SBLI 会迅速从二维走向三维，直接改写激波位置、分离范围与阻力发散马赫数。此前对 SHM1 这类翼型的认识基本来自二维模拟，短时内二维是否够用、三维性从哪一刻开始起作用，缺少判据；三维涡量场怎么生成、由哪些项供能，也没有拆开算过。工程上这直接关系到抖振与阻力预测的置信度。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">做法是把 SHM1 的三维高保真模拟与 Fujino 等报告过的二维结果对齐：先看展向平均后的压力与摩阻何时开始偏离二维曲线，由此划出三维性真正起作用的起始时刻。在此基础上统计流向与壁法向拟涡能（enstrophy，涡量平方的度量）随时间的演化，再用 CETE（可压缩拟涡能输运方程）逐项拆解归一化收支。三个工况分别对应法向激波初生、阻力发散与激波诱导分离。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">摘要未给出具体数值，仅作定性描述：与二维模拟对比后，存在一段时间内展向平均的三维流动仍贴着二维演化，之后表面压力与摩阻才开始分道扬镳，三维效应由此显现。归一化拟涡能收支里，黏性与可压缩相关项在早期占主导；涡拉伸在法向激波初生和阻力发散工况只是小量，到激波诱导分离工况才变得可观，且是间歇性的。三个工况的主导输运机制相同，只是占比随 SBLI 拓扑重新分配。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">证明 SHM1 上跨声速 SBLI 的三维化存在一段可识别的起始时间窗，二维结果在该窗口内仍可作参照，之后必须换三维视角；同时给出各工况下拟涡能生成主控项的排序。结论可推广到同类 NLF 翼型的短时激波—边界层干扰分析，但不覆盖长时间演化。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把三维性与二维演化的偏离作为三维化起始的判据，给出明确时间窗；用 CETE 对三维涡量场做归一化收支分解，区分黏性、可压缩与涡拉伸的贡献；覆盖法向激波初生到激波诱导分离三个工况，指出机制不变而权重随拓扑重排。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要：网格规模、时间步、转捩与湍流处理、数值格式均未披露；短时演化结论能否外推到统计定常或长时间分离不明确；只有 SHM1 一个翼型、三个工况，缺少与风洞实验或 PIV 的定量对照。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.25611v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.25611v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.24870">
+  <div class="t">Kinetic study of Reaction-Control-Jet Interference in Rarefied Hypersonic Crossflow</div>
+  <div class="meta">Alexis Theofilis, Martin Grabe · 30 pages, 15 figures, 13 tables. To be submitted to Theoretical and Computational Fluid Dynamics</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>三维DSMC（分子级稀薄气体模拟）复算1975年喷流风洞实验，干涉压力峰值误差≤25%。二维近似高估约12倍，结论限于Kn 0.021–0.125。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">稀薄高超声速来流中的横向喷流（姿控喷流与主流干扰）长期靠两条路：风洞测量与连续介质 CFD。可用的稀薄风洞基准极少，最典型的就是 1975 年 DLR 那一批；而在 Kn 0.01 以上，Navier-Stokes 加滑移边界已不可靠；全三维 DSMC 又贵，工程上习惯退回二维平面槽近似。真正的痛点在于：没人对着同一套实验定量算过，二维近似到底错多少、往哪个方向错、网格收敛后是否还是错的。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法核心是 DSMC（Direct Simulation Monte Carlo，直接模拟蒙特卡洛：用大量模拟分子的碰撞与输运统计代替求解连续方程）。作者搭了两套几何：二维平面槽（planar slot）模型与三维模型，均以氦喷流垂直吹入 Mach 11–12 空气横流、三种来流密度复现 DLR 1975 年实验，对应 Kn 0.021–0.125。验证链分三层：平板单独绕流（与带滑移速度和温度跳跃的相似解对比）、激波拓扑、喷流干涉压力场。最稀薄工况另做分辨率扫描（resolution sweep），把平面干涉压力收敛并外推到极限值。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">二维模型能复现激波拓扑、干涉压力的正负号与双瓣（two-lobed）结构，以及随稀薄度变化的趋势；平板边界层也与三维结果、与带滑移和温度跳跃的相似解一致。但二维把干涉压力峰值高估约 12 倍，且峰值位置更靠上游，三种密度下都如此。分辨率扫描在 1% 以内收敛到外推极限，说明这不是网格问题。三维 DSMC 在三种密度下都复现了实测干涉压力：瓣峰偏差 25% 以内，位置偏差 3 mm 以内。代价是二维与三维都把平板单独壁压高估 50%–75%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">定性上二维平面槽够用，定量上不够：峰值差一个量级、位置偏上游，工程若拿二维结果定喷流强度或力矩会系统性高估。三维动理学模拟在 Kn 0.021–0.125 的稀薄横向喷流里已能与 1975 年风洞数据对上，但平板自身压力仍留 50%–75% 的偏差待解释。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把 1975 年 DLR 风洞数据重新激活为稀薄 DSMC 的定量验证基准。首次量化二维平面槽近似在干涉压力峰值上的失效幅度与方向。用分辨率扫描加外推给出二维解的收敛判据。把误差拆成平板自身压力与喷流干涉两部分分别归因。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">论文仅公开摘要：网格规模、模拟分子数、统计误差、时间步长、壁面适应系数等关键设置均未披露；平板壁压高估 50%–75% 的原因没有给出；横向泄流（lateral relief）目前只是待验证的假设；作者自述全三维动理学扫描与喷流强度/力的对比仍在进行，尚未完成；也未提及代码或数据是否开源。结论边界限于氦喷流、Mach 11–12、平板几何与 Kn 0.021–0.125。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.24870v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.24870v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：<a href="https://guff99.github.io/paper-radar-site/daily-2026-11-12.html">2026-11-12</a></footer>
+</div>
+</body>
+</html>
