@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-25</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-25</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.31105">
+  <div class="t">LiveLoRA: Exact KV Cache Migration Across LoRA Updates for LLM Agents</div>
+  <div class="meta">Tianyi Huang, Samuel Xu, Ivy Gu 等 · Accepted at the NeurIPS 2026 Workshop AgenticOS: Co-designing Systems and ML Foundations of an OS Layer for Agentic AI</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>LiveLoRA 精确迁移 LoRA 更新后的 KV cache，32 会话 8K 下发布较全量重算快 68.98 倍。仅支持末层适配且需改运行时。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">持久化 LLM agent 同时维护可见交互历史和隐藏推理状态。LoRA 更新替换低秩因子，等于换掉了产生当前 KV cache 的那套参数；继续用旧 cache 就是新旧版本混用，而重放全历史做 full-history re-prefill 的成本随上下文长度和活跃会话数增长，可能直接主导 publication latency。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">LiveLoRA 是 model–runtime co-design，把发布新 adapter 变成一次版本一致的迁移。结构上只在最后一个 decoder block 放 LoRA：Q/O/MLP 用标准 LoRA，K/V adapter 固定 down-projection A（沿用 LoRA-FA 思路），只让 up-projection B 随版本变；embedding、前 L-1 层、所有 normalization 和 LM head 冻结。定理 1 的假设是 KV cache 为唯一跨 token 隐状态、执行确定、冻结部分不变、K/V 只按给定价形式变化、其他版本相关 final-block 操作在最新及未来 token 重算，此时精确算术下与 full-history re-prefill 条件分布相同。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">实验用 Qwen2.5-3B-Instruct、单张 NVIDIA H200、BF16、SDPA；final-block Q/O/MLP LoRA rank 8、α=16，fixed-A K/V rank 32、scale 1。固定历史研究五 seed、每 run 30 次配对更新：单会话中位迁移延迟从 2K 的 17.15 ms 到 32.7K 的 18.03 ms，full re-prefill 从 40.78 ms 涨到 919.21 ms；32.7K 时平均 run 内中位配对加速 51.06× [50.10, 52.07]；32 会话 × 8K 达 68.98× [67.08, 71.39]，5 分位 62.96× [60.61, 66.06]。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">系统上 publication 延迟不再随历史长度线性增长（17–18 ms）。代价是额外保留 base 投影和低秩坐标，以及约 5% 的解码开销；成本模型给出 8K 下相对 full re-prefill 约 600 token/update、相对 boundary replay 约 30 token/update 的盈亏平衡点。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把 adapter publication 形式化为 adapter 参数、KV cache、next-token logits 的版本一致迁移，而不是简单 invalidate 或整段 replay。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自述：compact 表示只覆盖 final-block adaptation 加 fixed K/V down-projections；只验证了 Qwen2.5-3B-Instruct 单卡 H200；另需注意，文中未给出真实 agent 负载、超 32.7K 历史或多租户下的表现。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.31105v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.31105v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.30742">
+  <div class="t">Transport-Safe Evaluation of LLM Agents: Trajectory-Dependent Judge Error and Anytime-Valid Auditing</div>
+  <div class="meta">Yulliwas Ameur, Samia Bouzefrane, Soumya Banerjee · Author&#x27;s accepted version (without the publisher&#x27;s template) of a paper accepted at ICAART 2027 (paper \#38). The final version will be published by SCITEPRESS; DOI to be added upon publication</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>复用一次 judge 校准做纠偏会让 agent 排名失真：偏差 0.245、覆盖率仅 0.016。改用随机审计的 AIPW（增广逆概率加权）后偏差低于 0.003，前提是评测能承担抽样人工审计。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">LLM agent 的评测通常依赖一个 LLM judge 打分，再按 judge 给出的成功率给 agent 排名。作者点出三个具体卡点：一是 judge 的错误率往往只标定一次，就被原样复用到所有 agent 上；二是 judge 的误判与漏判其实依赖轨迹，而不同 agent 在成功和失败时产生的轨迹分布并不相同，把同一个标量纠偏套到所有 agent 上会带来系统性偏差；三是评测常常边跑边看、随时决定加点采样或停止，普通固定样本置信区间在这种情况下不再有效。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">论文不提出新的 agent 或 judge 模型，而是一套评测方法论，由四部分串起来。第一步推导标量纠偏在轨迹依赖误差下的精确渐近偏差，把“偏差从哪来”写成可检验的量而非噪声。第二步给出从可识别性（identification）到同时秩（simultaneous ranks）的检查链：先确认目标成功率在现有数据支撑下可识别，再谈逐点估计，最后才谈多 agent 排名能否同时给出置信集。第三步是主方法 AIPW（augmented inverse-probability weighting，增广逆概率加权）：把少量人工审计当作随机抽样的金标准，用倾向得分加权修正 judge 标签，再加结果回归项降方差；审计可为均匀随机，也可 design-aware（按设计知识分配抽样概率）。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">标量纠偏即使给了 oracle 级别的标定，最大偏差仍达 0.245，逐点平均覆盖率只有 0.016，250 次重复中没有一次恢复完整排名（0/250）。改用 AIPW 并配合均匀随机审计或 design-aware 随机审计后，最大偏差压到 0.003 以下，逐点平均覆盖率分别为 0.939 和 0.950。48 格压力测试里，标定标签从 600 增到 4800 时，有效目标支撑（effective target support）只从 0.209 升到 0.805，说明单纯加标定数据补不上轨迹覆盖的缺口；同条件下带审计的 AIPW 平均绝对误差维持在 0.018–0.020。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：judge 误差一旦随轨迹变化，用一次标定得到的标量纠偏去给多个 agent 排名并不成立，偏差和覆盖率都会崩；把审计作为随机化设计嵌入评测、用 AIPW 做纠偏，才能把偏差压到千分位级别并保住接近名义水平的覆盖率。作者界定的适用范围是：有审计预算且目标分布稳定。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把 judge 误差依赖轨迹显式建模，推导出标量纠偏的精确渐近偏差，使评测偏差从经验观察变成可计算量。二是提出从可识别性到同时秩的检查链，明确什么条件下才允许给出多 agent 的排名置信集。三是用随机审计加 AIPW 替代一次性标定纠偏，并区分 uniform 与 design-aware 两种审计设计。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">本篇未取得全文，以下基于摘要与 arXiv 元数据，方法细节与实验表格无法核对。就已见信息看：验证只在四 agent 半合成基准上完成，没有真实 agent benchmark 或线上数据；AIPW 路线要求可随机抽样的人工审计预算，成本未讨论；“目标稳定”是 e-process 有效性的前提，目标漂移时结论不保证；有效目标支撑只到 0.805，剩余未覆盖区域的排名性质未说明。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30742v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30742v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.30624">
+  <div class="t">Oops!... I Parsed It Again: Tool-Call Smuggling Against LLM Agents</div>
+  <div class="meta">Igor Santos-Grueiro, Daniel Romero-Ruiz</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>同一份 tool call 字节被 guard 与 executor 各自解析，审批与执行就会错位；作者归纳 6 类 tool-call smuggling（同串两读）向量。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">同一份参数字节要经过 provider API、推理服务器、网关、客户端 SDK 与 agent framework、guard、executor 多次解析，而 JSON 留了自由度：RFC 8259 只说对象里的名字「SHOULD be unique」，JavaScript 取最后一份重复 key，别的 parser 取第一份，typed decoder 可能忽略大小写。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">攻击者位置四类：T1 控制模型读到的内容，T2 控制工具 schema 与描述，T3 在 provider 与 agent 之间改写字节，以及 T1+T2 的冒充 server。从字节到 call 有六个环节，每环节 JSON 或 JSON Schema 都留了选择，对应六个向量：V1 build，重复 key 与伪装 key（大小写、尾部 NUL）；V2 type，&quot;12&quot; 算字符串还是数字、超过 2^53 的整数与 NaN；V3 decode，转义与 Unicode，credenti\u0061ls.txt 对读原始文本的过滤器不可见；V4 frame，流被截断时补全还是拒收；V5 schema 解释，未声明字段、default、跨版本关键字。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">17 个配置里多数配对在某些输入上分歧；两个官方 MCP SDK 的 server 路径接受不同输入，SDK X 把 &quot;12&quot; 转成 12 并接受超过 2^53 的整数，SDK R 都拒。106 个公开 MCP server 的 5,778 个工具、4,693 个 schema 中，100% 顶层接受未声明字段，99.8% 不写 schema 版本，558 个（11.9%）跨组件给出不同参数或判定。端到端攻击跑 τ-bench 与 AgentDojo，executor 为真实组件：guard 批准用户的 I3EHXC，MCP SDK 取消另一客户的 U86B6B，日志只记前者；credenti\u0061ls.txt 过 DLP 过滤器后落地成 credentials.txt。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明：在没有任何组件违反文档的前提下，agent 栈里「被批准的 call」与「执行的 call」可以分叉，且这种分叉在真实部署里不罕见——两个官方 MCP SDK 就有分歧，11.9% 的线上 schema 会给出不同参数或判定。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把 tool-call smuggling 立成攻击类别而非单组件 bug 合集，借用 HTTP request smuggling 的框架给出五步结构与 T1/T2/T3 三类投递位置。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">六个向量都测了，但 V4 只在单个 parser 上测，V6 用的是作者自己的 ID 查找规则、result binder 与 guard；D5 不处理 oneOf/anyOf、不检查类型、只解析被显式标注为 JSON 文本的字符串，而没有 schema 这样标注。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30624v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30624v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.30004">
+  <div class="t">EnvTrap: Revealing the Environment-Only Attack Surface in Embodied AI via Consequence-Blind Action Execution</div>
+  <div class="meta">Zehao Liu, Huashuo Lei, Xi Lin 等 · Accepted at NeurIPS 2026. 15 tables, 5 figures</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>EnvTrap 不改指令也不碰模型，仅重排已有物体就把五类动作策略的危险动作率抬到均值 83.</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">此前对具身系统的攻击走三条路：改指令（crafted prompt、语义安全评测）、改视觉输入（对抗 patch、单目 3D 检测攻击）、改模型（训练期后门与投毒）；三者都要碰指令、传感器或模型参数。作者的空白是：没人把「只重排场景中已有物体、指令与模型完全不动」这一路单独隔离出来做对照。评测方式也有缺口——ActionReasoningBench、PhysBench、PIQA、IntPhys 把物理推理当离线预测题，不看智能体是否因后果变化而改动作。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">EnvTrap 是诊断流水线，输入一条 benign 指令，输出经验证的三元组 safe / trap / null-trap。Spatial Constraint Sampling（SCS）在 MuJoCo 中做约束拒绝采样，三重约束：trigger-gating（无机器人动作时 30 秒内不得自发触发）、bounded perturbation（扰动有界、保持视觉相似）、visibility matching（目标在初始视角可见）；Plausibility Verification（PV）过三闸：自动触发检查、动作触发检查、五人可信度评分（通过率 &gt;80%，Fleiss κ&gt;0.6）。基准含 7 个任务族、143 个模板、28,600 条轨迹，留出 20% 模板做泛化。防御端全参 SFT 微调 Qwen3-VL-8B 预测动作后果，异步缓存架构让后果预测与动作执行并行，危险动作被拦截后重规划。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">仿真覆盖 5 个动作策略（OpenVLA、π0、RT-2、RDT 四个 VLA，加 ACT 视觉运动基线）与 2 个 world model（Cosmos Policy、DreamZero）。安全场景成功率 80.0%–95.7%（均值 85.9%），陷阱触发率 78.6%–92.9%（均值 83.6%），跨布局动作一致率均值 86.1%——危险关系出现时模型仍执行原动作序列。防御把陷阱触发率在仿真中平均降低 76.3 个百分点，物理后端合并降 62.9 个百分点，仿真安全场景成功率仍高于 77%，对留出模板同样有效。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明的是 behavioral consequence insensitivity：策略在安全布局下能完成任务，却在空间关系改变后原样保留名义动作序列，该现象跨 VLA、ACT 与 world model 一致，并在真机复现。防御结论限于 Qwen3-VL-8B 这一预测骨干。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">提出 environment-only 攻击面：不改指令、不碰模型、不动传感器，仅重排已有物体即可制造危害。
+给出三配对场景生成流水线与 143 个模板、28,600 条轨迹的基准，null-trap 控制使其能区分「布局异常」与「危险空间关系」。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者在 checklist 中承认：Table 1 的主脆弱性结果只有点估计，未给置信区间或显著性检验，只有 Table 4 与人工评估报告了方差与 bootstrap 区间。其他缺口：SSA 的动作-属性兼容清单由人工编写，覆盖范围限于 7 个任务族、7 类陷阱；场景可信度由 5 名志愿者评审，人工评估仅 10 人各看 30 个场景，规模有限且未做 IRB 审查（作者称该设计不需要）。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30004v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30004v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.30572">
+  <div class="t">VeriTouch: Verified Visuo-Tactile World Models that Improve Robot Policy Learning</div>
+  <div class="meta">Shuxun Wang, Xiaonan Jiang, Zhaoyu Wang 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>接触操作缺数据，VeriTouch合成验证视触觉数据，成功率19.4%→33.8%。扩至真实四倍33.0%→67.0%，适合接触丰富操作，需少量真机示范。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">接触丰富操作需要机器人理解物理接触，仅靠视觉很难推断接触状态，触觉能提供直接反馈；但真机视触觉数据采集受昂贵触觉传感器和 labor-intensive 遥操作限制，仿真又需要真实环境与准确物体物理属性建模。已有工作尝试合成操作视频并提取动作训练策略，但扩展到视触觉演示时，必须生成与可见接触同步的合理触觉响应。现有路线各有卡点：ViTacWorld 生成动作条件 rollouts，TACO 针对策略失败片段做 corrective segments 并反复生成数据、重训策略；仿真验证依赖额外环境。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">VeriTouch 由 VeriGen、VeriEval、VeriIDM 组成。给定初始主/腕图像和指令，VeriGen 生成完整观测序列（双视角视频+左右触觉3D位移场）：基于 Cosmos3-Nano 的 Mixture-of-Transformers，复用视频/文本专家，视频专家扩为双视角；16,593 条 OmniViTac 预训练，3,056 条 Gello+3,275 条仿真适配，200 条真机微调。VeriEval 用约900条人工标注视频微调 VLM 做视觉过滤，再查触觉-视觉接触区间对齐、AnyTouch2 重建误差、FeelAnyForce 力合理性。VeriIDM 用双视角 ResNet-18 多尺度特征、局部细节分支和时序卷积，以17帧重叠窗口提动作。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在五个真机接触任务（chip pick、egg pick、charger press、pullback car、whiteboard erase）上，每任务采50条真机示范，前两任务用50条、后三任务用25条训练。等量加入验证后合成数据，四种策略平均成功率从19.4%升至33.8%；逐策略 baseline→VeriTouch 为 ACT 6.7→18.3、pi0.5 19.7→30.0、N0-VTLA 31.3→51.7、FTP-1 20.0→35.0。消融中不加 VeriEval 的未过滤合成数据整体低，如 N0-VTLA 33.3 对 51.7、ACT 9.3 对 18.3，说明过滤有效。合成数据扩至真实四倍时，平均成功率从33.0%升至67.0%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明：经过多模态验证的合成视触觉轨迹，能直接提升视觉策略和视触觉策略在接触丰富操作上的成功率，而且扩大合成数据量可在不追加真机采集的情况下继续涨点。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把生成、验证、动作提取拆成流水线：VeriGen 出完整轨迹，VeriEval 先过滤，VeriIDM 再提动作，避开 replay 和迭代重训。二是把 tactile expert 接入预训练视频模型，用共享时间轴 joint attention 让双视角视频与双侧触觉形变同步演化。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者未讨论跨机器人、跨触觉传感器的泛化：真机只用 xArm7 与 Xense 体系传感器，五个任务，每任务25–50条真机示范；VeriEval 的 τ_vis、τ_rec 阈值敏感性和约900条人工标注成本未给消融。OpenViTac 仿真中插入类任务提升有限，如 Insert USB 的 pi0.5 仅0→3.3、N0-VTLA 0→6.7。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30572v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30572v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.30907">
+  <div class="t">DexLatentWorld: 3D Cross-Embodiment Latent Action World Models for Zero-Shot Robotic Manipulation</div>
+  <div class="meta">Vinay Udit Mohan, Xuchuan Huang, Rolandos Alexandros Potamias · 15 pages, including supplementary material</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>DexLatentWorld用3D潜动作做零样本跨实体操作：仿真90%/92%/60%，真机86%。在潜空间用CEM规划，几何+IK执行，无需动作标签或实体解码器。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">机器人操作的世界模型通常依赖动作标注的交互数据，采集成本高、难扩展；且模型绑定特定实体形态，难以迁移到未见机器人。3D几何能显式表示空间关系和接触几何，粒子位移可直接监督物理运动，使潜动作推断与预测动态落在同一物理空间。现有PointWorld、3DPWM等3D世界模型在跨实体迁移上有限；LAC-WM需要动作标注训练投影器，LAWM-3D的世界模型仍基于视频。本文因此从未标注3D观测中学连续潜动作，直接在潜空间规划，从预测粒子运动恢复可执行指令，不用实体特定动作解码器。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">DexLatentWorld由共享PTv3编码器、逆动力学模型和前向动力学模型组成，输入为场景点云粒子（每实体1,024个点，覆盖双手、物体、桌子、干扰物），数据来自H2O，通过UniDex式手腕对齐和指尖IK重定向到8种机器人手，共76条训练序列、41,094个窗口。逆动力学用连续观测的最粗PTv3特征加时间嵌入和4个可学习查询token，经自注意力输出4×8维潜动作。前向动力学把各阶段特征反池化到全分辨率、投影到192维，复制到K=5个视野；损失为运动加权Huber位移损失加0.15权重的跨实体对比损失：同一窗口在两个随机实体下的首过渡潜动作构成正对，批内其他窗口为负例。规划用CEM优化五步、160维潜动作序列，以训练过渡拟合的对角高斯初始化；模型总参8.6 M，4块GH200训练约16小时。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">潜在条件消融（表9）：正确潜动作下，五步平均EPE手部7.94 mm、物体13.59 mm、场景0.87 mm；零潜动作升至53.17/43.43 mm，打乱潜动作75.01/51.96 mm，固定潜动作60.29/46.78 mm。无运动基线为49.5 mm（表8跨11种实体的跨解码设置）。跨实体解码：256个验证窗口、11种机器人实体平均Mover EPE优于基线。实体探针（图8）：UMAP、t-SNE、PCA显示不同实体潜动作大量重叠，无形态特定聚类。零样本夹爪操作在RoboSuite中Franka Panda + Robotiq140（堆叠、牛奶运输）和WipingGripper（推方块、推冰球）上验证。灵巧操作在任务无关域适应后（LoRA rank 2，13个非评估厨房的play数据）达到90%、92%、60%，对应DexWM的72%、58%、28%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明：几何接地的潜动作空间可作为跨实体统一、可迁移的接口。潜动作可从无动作标签的3D点云观测中学得，保留可控、可组合的运动信息，按几何后果而非视觉外观进行预测。规划直接在潜空间完成，执行不依赖实体特定的潜到动作解码器，仅用已知几何和运动学就能恢复指令。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">1）统一3D潜动作世界模型：用粒子场景动态与共享连续潜动作联合学习，不依赖动作标签，实现跨实体世界建模。
+2）几何预测到控制流程：直接在潜动作空间规划，从预测粒子运动经已知几何和运动学恢复可执行目标，省去实体特定的潜到动作解码器。
+3）跨实体对比对齐：用同一操作在不同实体下的过渡构成正对，拉近运动表示、压掉形态差异，支持未见末端执行器零样本迁移。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">全文未设专门Limitations章节，作者未明确列出局限。从实验设置可见：训练与验证仅用H2O一个双人操作数据集，场景多样性有限；重定向依赖已知手物体网格和拟合；CEM默认64样本×4迭代，未讨论更大预算或推理时延；完整复现需H2O、重定向管线和多块GH200。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30907v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30907v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.30463">
+  <div class="t">Autonomous UAV Navigation in an Unknown Environment via Multi-Trajectory Model Predictive Control</div>
+  <div class="meta">Danilo Saccani, Lorenzo Fagiano</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>无人机未知环境导航，多轨迹MPC较标准MPC仿真跟踪误差降6.6%、到达时间降6.8%。适用于仅靠平面LiDAR感知的静态障碍场景，安全性证明尚未覆盖动态障碍。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">未知环境下无人机自主导航要同时兼顾避障安全与快速到达目标，二者天然冲突：偏保守飞得慢，偏激进容易撞。已有做法大致分两类。第一类假设障碍物位置和形状完全已知，用势场、A*、采样规划器或非线性轨迹生成离线计算路径；第二类用MPC，把它写成混合整数线性规划靠整数变量判断轨迹是否落在自由空间，或用LTV-MPC将自由空间欠近似成凸多面体。这两类都依赖障碍物信息完全已知。到了未知环境，无人机只能靠机载传感器拿到局部信息，约束随运动不断变化，标准滚动优化不再保证递归可行性，即下一步可能算不出可行解。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">论文提出多轨迹模型预测控制（multi-trajectory MPC, mt-MPC），采用分层架构：低层位置控制器以50-100 Hz跟踪参考位置，高层mt-MPC以较低频率规划轨迹。高层用由双积分器加状态反馈经辨识和离散化得到的线性时不变模型，状态含位置和速度，输入为参考位置。每步先用360度平面LiDAR的M个距离读数构造自由空间的凸欠近似：从内接于球的正多边形出发逐顶点扩展，只要凸包不含LiDAR读数就继续扩张，返回多面体S(k)，中间结果也可用。mt-MPC在同一个有限时域最优控制问题（FHOCP）中同时规划两条轨迹：安全轨迹完全位于S(k)内、终端速度为零；利用轨迹允许违反当前约束以追求目标。两条轨迹在当前步共享同一输入，之后才分岔，代价函数只罚利用轨迹与目标的距离。算法每步优先用当前安全集求解，不可行则回退到最近一次可行的安全集。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">仿真平台为MATLAB 2020a加Yalmip，硬件是四核Intel Core i7、3.6 GHz、32 GB。底层用非线性无人机模型作为“真实系统”，高层运行mt-MPC。单步QP求解平均约40 ms，凸欠近似计算另需约60 ms。与使用相同代价函数调参的标准单轨迹MPC对比：在100次随机生成初始状态、障碍物和目标的仿真中，mt-MPC的平均跟踪误差降低6.6%，平均到达目标时间缩短6.8%，但QP求解时间增加12.6%。两种方法都能无碰撞到达目标，轨迹形态不同（图8）。图7展示了mt-MPC导航时的典型场景，可以看到凸欠近似S(k)以及安全轨迹和利用轨迹的分岔。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">mt-MPC通过在同一个优化问题中同时考虑安全轨迹和利用轨迹，降低了标准单轨迹MPC的保守性，同时保留了递归可行性，进而在时不变环境假设下保证持续避障。仿真结果表明，与标准MPC相比，跟踪误差和到达时间均有改善（-6.6%和-6.8%），计算代价增加有限（+12.6%）。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">提出mt-MPC范式：在同一个FHOCP中规划安全轨迹和利用轨迹，让二者共享当前输入、后续分岔，实现约束满足与代价最小化的部分解耦。给出基于LiDAR读数的凸欠近似构造方法，逐顶点扩展且中间结果可用，适合实时实现。通过修改滚动优化实现（回退到最近一次可行的安全集）证明递归可行性，并由此保证持续避障。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者承认递归可行性和避障保证仅在时不变环境假设下成立，动态障碍物需要额外假设。理论保证针对控制导向模型，与实际非线性系统存在模型失配；作者称可用不确定性量化加鲁棒MPC处理，但属于未来工作。实验仅做了仿真，未进行真机验证，也未与其他方法（如强化学习）对比。单步总计算时间约100 ms（40 ms求解加60 ms构造），高速飞行时的控制频率可能受限。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.30463v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.30463v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.29158">
+  <div class="t">Implementation and Software-in-the-Loop Evaluation of a Trans-Domain Digital Twin Architecture for Autonomous Guidance of the Phoenix VTOL UAV Without Online GNSS</div>
+  <div class="meta">Mansoorali Amiri · 34 pages, 17 figures, 4 tables. Software-in-the-loop evaluation of GNSS-independent Phoenix VTOL guidance using a trans-domain digital twin architecture. Source code and reproducibility materials: https://doi.org/10.5281/zenodo.24419538</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>GNSS拒止下用跨域数字孪生引导VTOL，仿真落点误差7.27米与31.62米。结论仅限SITL仿真，绝对定位与安全均未获保证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">GNSS拒止时惯性积分会漂移，没有地理参考锚点就无法恢复唯一绝对位置；多传感器融合虽能改善状态估计与相对轨迹一致性，但相对轨迹一致并不等于绝对定位准确，也不等于真的到达目的地；标定误差、数据不同步、算力限制会拉低估计质量，而接受可疑数据或在数据源之间突变切换会打断估计与控制连续性；现有工作多把估计器、检测器、控制器分开评估，看不到执行指令的真实后果与飞行反馈，均值精度也不代表导航完整性。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法为TDDT（Trans-Domain Digital Twin，跨域数字孪生）七层架构。Layer 1取机体与环境约束；Layer 2是三个专用孪生：MESA-NAV做多传感器状态估计，WingMPET算动力学响应，MicroMet建模大气，各自随输出报告质量与不确定度；Layer 3把三者按时间、语义、坐标系对齐，写进共享跨域状态STD的原子快照，快照含三孪生状态、活动关系、约束、任务参考、时间与完整性标识；Layer 4做有限滚动时域预测；Layer 5在最多9个相位相关候选指令中按标量代价选出带约束、可追溯的指令；Layer 6经数字飞行员与图形界面把指令送ArduPilot SITL，由JSBSim仿真飞行响应；Layer 7用执行后观测到的速度残差对WingMPET扰动做有界修正。TDOC编排层序、任务相位、时序与事务标识。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在SITL中用Phoenix双旋翼尾座式VTOL验证，记录到垂直起飞、向目标移动、着陆与自主停止。第三次测试共4455个周期，1527条被接受的反馈里1526条唯一项用于WingMPET扰动修正，位置未被修正；4455个原子包全部通过14项契约检查（时间、标识、一致性），但拓扑固定。第二次测试落点误差7.27 m、被判定接受；第三次虽然着陆有效，却以31.62 m落点误差和13.66 m水平RMSE失败，说明闭环不保证漂移抑制与绝对定位。目标10 Hz下第三次测试处理时间95分位为86.27 ms，但有74个周期超过100 ms，未达到硬实时。2214个周期中WingMPET可行性评估与降阶模型接受不一致。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明了在SITL条件下七层TDDT能跑通估计—共享状态—预测—决策—执行—反馈闭环，任务相位可自主执行、指令可追溯、契约一致；但闭环不保证漂移被抑制，也不保证绝对定位，第三次测试即为反例。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把七层TDDT在Phoenix无在线GNSS引导上做了有限落地，用原子共享状态、时间同步、数据来源与指令标识把估计、预测、决策串成闭环。把决策直接接到ArduPilot/JSBSim，并闭合指令执行、观测与有界动力学模型修正回路。将仿真真值与导航输入分离，使落点误差、处理时间与数据交换有效性可被独立评估。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自述：无独立风观测、三维风速计未启用，磁/地形等多场锚定未激活，水平位置不可观；磁力计只约束航向、气压计只约束相对高度，Pitot加风先验给不出水平位置；协方差未覆盖全部相关性，垂直基准未验证，未评估三维误差与误差界。结果仅限SITL：Phoenix气动系数主要来自悬停，固定翼段置信度低，虚拟传感器不含温度、振动、电磁干扰，也未做无风对照与风况配对试验。Dynamic N-Twin的动态拓扑、信任权重、一致性中心与L-EPAC误差遏制均未实现，鲁棒多目标优化被9个局部候选替代，无全局稳定性或递归可行性保证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.29158v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.29158v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.29100">
+  <div class="t">Neural Costate Guidance for Autonomous Cislunar Low-Thrust Trajectory Generation</div>
+  <div class="meta">Jannik Graebner, Ryne Beeson</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>星上地月低推力轨迹重规划用神经协态制导，恢复率从51%–72%提到94%，算力降60倍。用于导航误差和推力器故障后的自主恢复，但L2转移成功率较低。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">传统航天器制导依赖发射前在地面设计的标称轨迹，星上GNC系统跟踪它。连续推力跟踪常用PD控制（比例-微分，常数增益把偏差拉回标称）或LQR（线性二次调节器，用二次型目标推导时变增益）。这些方法在动力学平缓区域能处理中等导航误差，但偏差较大或在动力学敏感区域出现中等偏差时，围绕标称的线性化失效，强行返回的燃料成本可能远高于重新优化。此时需要重新规划轨迹：目前由地面团队生成并验证新路径再上行注入，耗时数天且依赖测控链路。阻碍星上重规划的两个卡点是：迭代求解器缺乏收敛保证，长时间低推力多体转移的最优控制问题高度非凸且对初值敏感。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法称为Neural Costate Guidance，采用间接法：不转写控制序列，而是求解由一阶必要性条件导出的两点边值问题，未知数是初始协态（costate，可理解为伴随状态，维数固定为低维且与飞行时间无关），控制由必要性条件直接给出。整体分离线与星上两部分。离线用BGOE（Backward Generation of Optimal Examples，最优样本反向生成）造训练数据：从满足横截条件的扰动终端条件反向积分状态与协态方程，每条极值轨迹只需一次反向积分。论文把BGOE扩展到CR3BP，关键在于终端状态沿目标轨道扰动、终端协态做显式修正以保持横截条件。针对三体动力学使反向轨迹在制导相关区域分布不均的问题，提出锚定轨迹（anchor trajectory）方法：从偏离标称的初始状态解出极值作为锚点，在其周围生成样本，并把所有训练协态重缩放到公共量级（协态只有正比例意义），另加哈密顿损失项约束必要性条件。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在Earth-Moon CR3BP的两个低推力转移上验证：从高地球轨道（HEO）到L1和L2点晕轨道，均穿越动力学敏感区域；L2目标强不稳定且位于月球之外，更难。L1转移最严苛测试中，网络加精化到达率为94%，PD跟踪72%，LQR跟踪51%。星上计算量（FLOP计数）比重解完整非凸最优控制问题少60倍，燃料成本相当。到达容差L1为0.01、L2为0.02，附录C用LQR保持验证了该容差下几乎总能驻留轨道。L2上去掉锚定同样影响最大，精化收益更大（四次迭代降62%–67%）。网络规模L1用W=400、L=7，L2用W=200、L=5。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论目前限于Earth-Moon CR3BP的两个HEO-to-halo转移；作者指出L2转移整体成功率仍较低，主要方向是提升对分布外查询的鲁棒性。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把BGOE扩展到CR3BP，终端状态沿目标轨道扰动、终端协态用显式位置协态修正保持横截条件，每条极值只需一次反向积分，避免逐样本求根。二是提出锚定轨迹方法，解决三体动力学下反向样本在制导相关区域分布不均的问题，配合协态重缩放和哈密顿损失项提升学习与推理。三是提出重规划制导算法：单次网络查询在cislunar敏感区不够，改为固定间隔反复查询并用阻尼微分修正精化。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自述的主要局限是L2转移整体到达率仍低于L1，且方法对分布外查询敏感：早期小误差会增长，导致后续查询落在训练分布之外；表9显示L2上加大网络、增加锚定都未超过训练种子间散布。计算量是FLOP计数而非真实运行时间，作者按GR740单核20 MFLOP/s折算。精化迭代提升精度但显著增加计算（L2四次迭代约679 MFLOP对无精化约110 MFLOP）。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.29100v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.29100v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：<a href="https://guff99.github.io/paper-radar-site/daily-2026-11-22.html">2026-11-22</a></footer>
+</div>
+</body>
+</html>
