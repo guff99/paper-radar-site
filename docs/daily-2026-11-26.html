@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-26</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-26</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.31727">
+  <div class="t">fork() for Agents: Agent Kernel for Non-blocking LLM Orchestration</div>
+  <div class="meta">Ankit Chadha, Pratyay Banerjee · Accepted in EACL 2027, Findings</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>Agent-Kernel 用异常触发的子图恢复 SGR（只重跑失败节点及其下游），恢复率 100% 而整体重放仅 55%，比 Sherlock 回滚快约 10 倍。它不负责规划，也不保护外部副作用。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">现状是同步阻塞：每次 tool call 卡住 agent 主循环，一处失败要么整体 halt，要么整条轨迹重放、中间结果全丢。已有方案各差一步——AsyncLM 做 token 级中断但忽略调用间依赖；AIOS 有 agent 级调度却没有级联失败恢复；DynTaskMAS 靠 planner LLM 出 DAG，失败时重规划整张图；Sherlock、AgentGit、Atomix 能保住已完成工作，但要装 verifier 和 planner、要用户手动触发，或只管工具调用边界。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Agent-Kernel 分持久化底座与原语两层。SAB（Sub-Agent Buffer）是 SQLite WAL 库，用 7 状态 FSM 跟踪子 agent（pending→waiting→running→complete|failed|cancelled|unreachable），转移写成单条 SQL 事务，edges 表存依赖对供 SGR 做 O(1) 传递闭包。DSP（DAG State Propagator）是后台守护进程，管四类级联：forward-success 在父节点全完成时派发子节点并注入父输出；failure 立刻把传递后代标为 unreachable；retry 是 SGR 入口；cancel 标记后代不可达。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">共 14,434 次运行，主模型 Claude Sonnet 4.5（跨 3 个 region 轮询），跨骨干补 Haiku 4.5、Opus 4.5；基准为 tau-bench、Gaia2、AutomationBench、InterruptBench 加合成 DAG 网格（宽度 K、深度 L）。budget=3 时 SGR 恢复率 100%，整轨迹重放只有 56.2%；去掉 SGR 的消融成功率跌到 39.4%。K=8、L=8 网格上 Sherlock-generous 也 100% 恢复但平均 149s，Agent-Kernel 21s，不同失败率下快 6.7–12.3 倍；更强的 ReAct-per-step-retry 同样全恢复但串行，快 3.3–12.7 倍。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">作者明确限定适用范围——它不是 planner（依赖由用户用 5 动词 API 声明），不是策略训练器（冻结 Sonnet 4.5），也不做失败检测，且不声称任务准确率 SOTA。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把异常触发、零样本、DAG 原生的子图恢复做成运行时原语，不需要 verifier 或 planner；用 SAB 的 7 状态 FSM 加 DSP 电平触发级联，把 reset 子图内部的并行也吃下来，并给出状态保持保证。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">prompt-mutation retry 只有 18 个格式漂移场景的小样本探针（14/18 对 6/18），作者自己标为初步信号，大规模语义失败评估留待未来；content-plane 消融是温度 0 的结构性探针，不是大 N 基准。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.31727v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.31727v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.33064">
+  <div class="t">U-Statistics-Powered LLM Reasoning</div>
+  <div class="meta">Shijin Gong, Kai Ye, Victor Chernozhukov 等 · 89 pages, 10 figures</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>将 GRPO 组大小选择重构为方差比估计并给出悲观自适应规则；Qwen2.5-1.5B 在 GSM8K 等任务平均准确率从 63.73 升到 64.38，额外花约 8.1% GPU 时长。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">GRPO（Group Relative Policy Optimization）自 DeepSeekMath 提出后，已成为训练 LLM 推理能力的基石算法，DeepSeek-R1 及其 Dr. GRPO、GSPO、GPG 等变体均以此为基础。其核心是在每个 prompt 上采样一组 completion，用组内相对奖励代替独立训练的 value network 来估计策略梯度，省掉 PPO 中的价值网络开销。但组大小 G 这个关键超参数始终靠试错选择。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">论文先给出 Lemma 1（GRPO scaling law）：在 prompt 有放回抽样假设下，策略梯度 MSE 可分解为三项，c1/B 对应 prompt 间方差、c2/(BG) 对应 completion 内方差、c3/(B(G-1)) 对应二阶 U-statistic 方差。固定 N=BG 后，最优组大小有闭式解 G* = 1 + sqrt(c3/c1)，超参数选择于是变成估计 c3/c1。三个估计器中，biased 忽略有限组偏差，debiased 做偏差校正，pessimistic 按估计梯度 MSE 的标准误惩罚候选 G，避免分母接近零时比值爆炸。Algorithm 1 在需要更新 G 时先用 pilot 样本估计方差分量，由三种规则之一选出 G_t，令 B_t = N/G_t，再按 (B_t, G_t) 采样并计算 RLOO 梯度。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">Reasoning Gym 与 GSM8K 上，Qwen2.5-1.5B-Instruct 用 5 个种子训练 200/500 步，采样预算 N=512、最大长度 512、学习率 1e-6。平均准确率：固定 G=2/4/8/16/32/64 分别为 62.56、63.73、63.39、62.14、59.89、57.95，pessimistic 为 64.38；Equations 55.71、Baseconv 70.58、Decimal 50.98、GSM8K 80.24 均为最佳。数学推理用 Qwen3-8B 在 DAPO-Math-17k 的 800 题上训练 300 步，N=256、(b,g)=(32,32)。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了 GRPO 型算法的策略梯度 MSE 具有三项 U-statistic 分解，最优组大小由 c3/c1 的比值决定，把 G 选择从经验试错变成可估计的统计问题。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">第一，用 U-statistic 的 Hoeffding 分解把 GRPO 策略梯度 MSE 写成三项，由此推导出闭式的最优组大小公式，把超参数选择变成方差比估计的统计问题，这是新的问题重构。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">本文指出 Lemma 1 假设 prompt 有放回抽样，而实践中是无放回抽样，作者以有限总体校正因子接近 1 来论证近似合理。实验规模限于 Qwen2.5-1.5B、Qwen3-8B、DeepSeek-Coder-1.3B-Base，未在大规模或更多架构上验证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.33064v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.33064v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.31800">
+  <div class="t">Learning Compact State Abstractions for LLM Agents</div>
+  <div class="meta">Yaswanth Chittepu, Raghavendra Addanki, Anup Rao 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>LLM agent 用完整历史当状态，上下文持续膨胀；本文把状态抽象成 LLM 搜索出的确定性递归程序，在 ALFWorld 与 ScienceWorld 分别减少最多 71%、57% 的策略输入，成…</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">LLM agent 的主流写法是 ReAct 式：推理、动作、观察全部追加进 context，下一步整段回灌，context 事实上就是 agent 的 state。这在构造上充分（什么都没丢），但完全不筛选：episode 越走越长，大量长期价值远小于文本体积的观察和动作结果堆在历史里，模型被迫反复从越来越长的文本中找回有用信息，最终撞上 context window。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法把 agent state 定义为一个递归的状态更新程序。策略 π 固定为黑盒，标准 agent 以完整历史为输入；本文学一个抽象函数 φ，令 s_t 由前一步状态、当前观察和上一步动作递推得到，初值为空，任务指令单独放在 prompt 里、不进状态。改为只约束成功率不退化，目标是在成功率不低于完整历史 (1-ε) 的前提下压低策略输入 token 数，λ 用于在满足约束的候选里继续压体积。作者给出 Proposition 1：行为匹配的总变差距离上界住成功率差距，故行为可行集包含于性能可行集、后者又包含于只罚退化的单边可行集；Corollary 1 说明判据越宽松，可达到的状态越紧凑。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在 ALFWorld 与 ScienceWorld 十个 task family 上用 GPT-5.6 Luna 做固定策略、三次重复评测：mean policy input 分别减少最多 71% 和 57%，相对完整历史的成功率差为 +1.7pp（95% CI [-1.8,+5.3]），无系统性差异，且该方法的 run-to-run 方差在所比较方法中最低。与 token 匹配的最近历史窗口 baseline 相比，φ 高 +10.0pp（95% CI [+5.9,+13.9]，n=254），三个 run 全部领先（+8.7 到 +10.6pp）。ALFWorld seen/unseen 分为 +1.5pp 和 -1.5pp，成功率 0.81 与 0.86，未见明显过拟合。长程的 BabyAI-GoTo-v0（576 步上限）上，完整历史每步增加 48.5 token、到步数上限时每次调用 27.5k token。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">又因 φ 的体积有界而完整历史随步数线性增长，交互越长收益越大，BabyAI 的 95% 明显高于短 episode 的 ALFWorld 与 ScienceWorld。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把 agent 的 context 膨胀问题重述为 policy-relative state abstraction，并以单边成功率缺口替代行为匹配，配套给出三级充分性判据的包含关系与紧凑性结论。用确定性递归程序当状态，部署时零额外模型调用，且状态规则可直接检视。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">全文在附录 G 处截断，未见作者单列的 Limitations 章节，以下为文中自述加可见缺口。搜索成本不低：860 次 meta-LLM 调用、17.7M token、5948 次环境 rollout，且每个 task family 单独搜一个 φ。对族内不同任务、分布外指令的泛化未讨论，Forces 三次 run 为 0.42、0.92、0.58，单族结论波动很大。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.31800v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.31800v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.32101">
+  <div class="t">Ego2Real: Learning Bimanual Dexterous Manipulation from Egocentric Visuo-Tactile Demonstrations</div>
+  <div class="meta">Ange Bao, Haishan Zhang, Lingzi Xie 等 · 19 pages, 9 figures</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>Ego2Real 用第一视角视频加触觉手套示范做双手灵巧操作迁移，真机 Box Rotation 从 0/15 提到 15/15。它需已知物体网格与固定机位，部署时机器人不装触觉。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">从第一视角人类示范学灵巧操作采集成本低、易扩展，而日常操作多为双手协同，协同的关键不只是手怎么动，还包括每只手何时、在哪、多大力地建立与断开接触。作者列出的三条卡点：靠参考的人手-物体几何推断接触，但高精度参考依赖动捕，采集被限制在仪器化实验室；直接从视频重建手物交互，遮挡与深度歧义导致接触缺失、穿模与不可靠接触估计；触觉手套虽能直接测人手接触，但多数工作仍与外部动捕搭配，在只有噪声视觉的第一视角双手迁移中手套的作用没被讲清。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Ego2Real 的输入是一对触觉手套、一台固定机位第一视角 RGB-D 相机，外加物体的度量网格与桌面。重建段：SAM 3 分割双手与物体，FoundationPose 估物体轨迹，HaMeR 给 MANO 初值；先优化双手共享手形与腕部深度做度量对齐，再用触觉精修腕位姿与手指关节角——手套读数池化为 54 个解剖区域，每区在 MANO 表面绑固定重心坐标的锚点，接触项惩罚锚点到物体表面的穿透与超容差间隙，法向项约束朝向，保持项在持续接触时抑制锚点在物体坐标系中的漂移，容差逐步收紧。重定向段：以交互网格的 Laplacian 坐标匹配把动作搬到 OmniHand 3（10 个主动关节、6 个被动关节），带限位、被动耦合与碰撞约束，逐帧求解、物体轨迹固定。策略段：mjlab 中用 PPO 训残差策略，动作是对参考腕位姿与主动关节的偏移。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">真机两个任务各 15 次试验，按 0–4 分里程碑打分。Box Rotation 上，触觉引导 HOI 精修把 Ego2Real 与 REGRIND 同时从 0/15 满分提到 15/15，说明参考质量本身是主因；Bottle Handover 在相同精修参考下，REGRIND 最常拿 3 分（8/15）、仅 2 次到 4 分，而 Ego2Real 有 12/15 到 4 分，体现 contact-informed RL 的增益。仿真侧用 1024 个并行环境、5 个评估种子报均值，成功要求完成参考且关键点误差在 3cm 内，保留物理随机化、观测噪声与延迟。训练为 PPO 1e4 次迭代、4096 环境、单张 RTX 4090。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明：在只有噪声第一视角视觉的条件下，把人体触觉同时用于 HOI 重建与策略学习能互补地提升真机成功率——精修参考决定任务能否做对，接触奖励决定做得像不像人、稳不稳。适用范围是不依赖外部动捕、物体网格已知、机位固定的桌面双手操作。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一，把触觉监督同时接入重建与策略两个阶段，并在同一视觉噪声条件下分阶段消融。二，触觉引导重建用 54 区域锚点的接触、法向、保持损失约束接触几何，不需要任务特定的重建训练。三，把触觉读数转成区域级接触奖励（状态匹配、总力容差、提前接触惩罚）配合残差 RL，让欠驱动灵巧手在本体差异下复现人手接触模式。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">所取全文中没有 Limitations 章节，作者只在方法里提到部署不使用机器人触觉。可见的缺口：重建需要预先给定物体度量网格，并假定桌面与固定第一视角机位；真机只验证 Bottle Handover 与 Box Rotation 两个任务、每个设置 15 次试验，样本量小，未报告新物体或新场景的泛化；接触力只在仿真奖励里以容差方式近似，真机没有力反馈闭环；推理以 15Hz 运行、参考被放慢一倍。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.32101v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.32101v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.33144">
+  <div class="t">PyRUA-Dex: Learning Programmatic Policies for Dexterous Bimanual Manipulation with Coding Agents</div>
+  <div class="meta">Feixiang Ruan, Guodong Lv, Kewei Zhang 等 · 23 pages, 9 figures, 7 tables. Project page: https://vme0522.github.io/PyRUA-Dex/</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>coding agent 免示教写出程序化灵巧双手策略：Bench2Dex 59.1→72.9 达 SOTA，DexJoCo 全随机成功率 81.0%；冻结程序上真机可弹钢琴。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">灵巧操作目前主要靠示教：imitation learning、VLA（把视觉输入直接变成动作的模型）、world-action model 都训练在遥操作数据上。多指手的高质量示教尤其稀缺：从人体视频 retargeting 不精确；后果是策略脆弱——Bench2Dex 上最强训练策略成功率刚过半，布局外观或物体位姿一扰动就退化。作者把问题拆成两半：发现解（抓取、双手顺序、各阶段动作），以及鲁棒化——成功率是各阶段成功率的乘积，五阶段各 80% 只剩 33%，而实测多数失败是某阶段没完成，不是步数不够。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">agent 和程序都通过 codebox 操作机器人：该层由机器人描述文件生成，把每只手建模为手指加拇指、关节按功能（bend、curl、spread）分组，暴露摆形状、按尺寸抓取、闭合到握住、检查是否仍握住等原语，接触由指尖触觉图与指令-实测关节位置滞后判定，感知用 SAM 3 定位物体。Stage 1 探索：8 个 agent（Codex CLI + GPT-6 Astra）并行，各分一个训练布局，可在 episode 内 checkpoint 回放 8 次，共享 memory 由专职 agent 维护；探索所得程序在无 agent 的 8 个新布局上评估，再由 distilling agent 汇总成 task library 并选出程序（允许按阶段跨 agent 组合）。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">Bench2Dex（12 种臂-手组合、26 个任务）：总分从探索后的 59.1 升到 72.9 的 SOTA，测试成功率 44.6%→60.6%，latched stage completion 67.0%→82.3%，成功率超过该任务最强训练策略的有 15/26 个任务。与同一模型 GPT-6 Astra 在线闭环相比，冻结程序在 benchmark 步数预算下成功率高 2.4 倍（在线为 26.2%）。DexJoCo（Allegro 手）：full randomization 下 81.0%，最强训练策略 40.3%；rand-obj 平均 58.7→88.5，精修的 10 个任务全部超过训练策略。真机是双臂平台加两只 22-DoF Sharpa 手、指尖触觉。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">在没有任何灵巧操作示教的条件下，让 coding agent 在仿真里写出程序并逐阶段精修，可以在两个 benchmark 上超过所有用示教训练的策略，且交付物是可读的 Python 程序：测试时零语言模型调用，按机器人控制频率运行，并对布局扰动保持鲁棒。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把灵巧操作策略学习变成程序开发：策略是冻结的代码而非网络权重，可读、可测、测试期零 token。codebox 原语层由机器人描述文件生成，含基于触觉与关节滞后的接触判定，让 12 种不同的手共用同一套程序接口。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">开发成本不低：中位数每任务 427M tokens/21.6 agent 小时（探索）与 214M/14.8（精修），最难任务用满 1,500 个布局、38 agent 小时，本质上是仿真里离线练一次。真机上线前仍需标定、物体重建与关节级系统辨识，指尖接触力量级未标定，80 Hz dither 未仿真。成功率仍被最低阶段拖累，例如 assembly 在 full randomization 下仅 19.3%。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.33144v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.33144v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.33010">
+  <div class="t">Embodied AI Fails the Mirror Test: How a Simple Mirror Breaks Robot Policies</div>
+  <div class="meta">Xuanchen Liu, Hejun Zhang, Boxuan Dong 等 · Code: https://github.com/iPPLab/robodojo-mirror</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>镜面让五种策略成功率平均降 10.8–56.7 个百分点，Rex-M1 在镜面桌面从 66.7% 跌到 4.2%。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">机器人操作基准已有 LIBERO、RoboTwin 2.0、RoboDojo 等；鲁棒性评测则用 LIBERO-Plus 扰动对象布局、相机视角、光照、背景、语言和传感器观测，LIBERO-VPro 看闭环执行中的观测退化与跨视角一致性，LIBERO-Pro2.0 覆盖环境、观测、执行、机器人状态与语言五类偏移，RoboPRO 在杂乱场景下补碰撞指标。作者指出的缺口是：这些扰动改变的是外观，而镜面反射是另一类结构化歧义——倒影保留可识别特征、随真实物体变化，却在表观位置没有可操作目标。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">RoboDojo-Mirror 构建在 RoboDojo 之上，保留原任务目标、成功判据与策略检查点，只改场景。评测五种策略：WALL-OSS-1.0-Lite、VPP2、Awomo-0.5、Rex-M1 Preview、GPT-6-Astra，覆盖 VLA（视觉输入直接生成动作的模型）、World Action Models 与 agentic policies；配对评估上，WALL-OSS、VPP2、Awomo-0.5、Rex-M1 每任务用 5 个布局乘 3 个策略种子，Astra 每布局跑 1 次；成功率按任务等权平均，再对三镜面条件等权求平均下降，配 95% layout-cluster bootstrap 区间。为区分视觉干扰与物理遮挡，WALL-OSS 和 Awomo-0.5 另设几何匹配的非反射面板对照（桌面镜无对照），面板向外移 5 cm 留间隙。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">主实验：五策略无镜成功率 60.8%–72.5%，三种镜面条件全部下降，平均配对降幅 10.8–56.7 个百分点。镜面桌面最狠，VPP2 从 72.5% 掉到 27.5%，Rex-M1 Preview 从 66.7% 掉到 4.2%；双镜通常比单镜更糟（VPP2 例外）。Astra 单镜仅 65.0% 降至 62.5%，接触率却最高（单镜 55.0%、双镜 85.0%），说明撞镜本身不等于失败。镜面-面板对照共 120 对匹配：mirror-only 失败远多于 panel-only，双镜下 WALL-OSS 25/2、Awomo-0.5 42/3；50.0%–87.5% 的镜面特有失败在两种条件下都无面板接触。双镜下两者都接触时，panel 成功率比 mirror 高 29.4 和 41.2 个百分点，接触时间分数为 1.85 和 6.83 倍。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明：镜面反射是当前通用操作策略的共享脆弱点，且退化不能归结为镜面当障碍物——多数失败没有接触记录，行为更像把倒影当目标、把真实目标位置算错。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">其一，提出 RoboDojo-Mirror 基准，在保留原任务目标、成功判据和检查点的前提下系统比较无镜、单镜、双镜、镜面桌面，并用配对布局与策略种子做同策略自比。其二，用几何匹配的非反射面板作物理遮挡对照，把视觉干扰和撞到障碍拆开。其四，补充 π0.5 与 FastWAM 的真机验证。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">全文未设独立 Limitations 章节，以下为文中可查的边界与缺口：策略只覆盖五种，任务固定为八项；Astra 每布局仅 1 次 rollout，统计功效弱于其他策略；几何匹配面板对照只做了 WALL-OSS 和 Awomo-0.5，镜面桌面没有对应非反射对照；真机仅 π0.5 与 FastWAM、四任务、每条件 10 trials。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.33010v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.33010v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.31889">
+  <div class="t">Barrier-Based Safety Filtering for Quadrotor Flight in Cluttered Environments Under Acceleration Limits</div>
+  <div class="meta">Andi Rahmadiansah</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>高阶CBF（控制屏障函数，把避障写成对加速度的不等式）加加速度受限QP的安全滤波器，把最小障碍余量从-1.594 m提到约0 m。代价是单障碍跟踪RMSE从0.050 m升到0.</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">四旋翼在建筑与设施附近巡检时，既要沿参考轨迹飞，又要与障碍保持间距。规划层的采样、图搜索与优化方法先给出一条无碰撞几何路径；但执行时受跟踪误差、扰动、障碍信息不准影响，原路径可能变得不安全。反应式的人工势场按当前障碍直接改运动，算得快却对参数敏感，会出现局部极小、振荡、吸引与排斥冲突。CBF（控制屏障函数，把「不许进入某区域」写成状态不等式）加QP安全滤波把跟踪与安全解耦：标称控制器管跟踪，屏障约束管安全，安全层可直接叠在已有外环跟踪器上，不必重做内环。安全函数只依赖位置、输入为加速度时相对阶为2，必须用高阶CBF才写得出含输入的约束。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">模型是固定高度平面双积分：状态为位置与速度，决策变量是水平加速度，前提是高度与姿态环足够快。标称部分为PD加参考加速度前馈的跟踪控制器，无遮挡时误差指数收敛。安全函数取机体到障碍中心距离平方减去有效半径平方，有效半径由障碍半径、机体半径与安全裕量相加；它对时间求两次导才出现加速度，相对阶为2。作者定义屏障量ψ（h的导数加α1倍h），再对ψ施加衰减不等式，展开后得到一条关于加速度的仿射不等式。每个活动障碍一条，叠加速度分量上下界，组成凸二次规划：在约束内找离标称加速度最近的加速度。只有距有效边界3.5 m以内的障碍被纳入QP。二维QP用枚举候选点求解，三障碍最多29个候选。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">参数为Kp=3.2I、Kv=3.6I，α1=α2=2，机体半径0.25 m、安全裕量0.45 m，加速度上限默认2.5 m/s²。单障碍下标称控制器RMSE仅0.050 m，最小余量却是-1.594 m（穿障）；安全滤波把余量抬到约0.000 m，RMSE升到0.908 m，控制 effort由2.559涨到10.893，26.237%时刻命令被改。三障碍下由0.044 m/-1.421 m变为0.747 m/0.001 m，修改率40.800%，两例均无不可行步。加速度上限降到0.5 m/s²时出现352步不可行，余量-1.415 m，而RMSE反而最小（0.397 m），说明低跟踪误差不能当安全指标；0.75 m/s²起恢复安全，2.0 m/s²以上结果基本饱和。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">作者证明三件事：滤波不介入时跟踪误差全局指数收敛；介入时误差动态是稳定标称系统被安全修正量驱动，输入-状态稳定、误差有界，介入结束后误差回到零；在初始屏障条件相容、障碍约束及时纳入且QP持续可行的前提下，安全集前向不变。适用范围有限：安全保证是条件性的，递归可行性没有建立，QP一旦不可行理论即失效。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把相对阶为2的高阶CBF与分量式加速度限幅放进同一个凸QP，做成可挂在已有外环跟踪器上的安全层，不触碰内环。二是把介入后的误差动态整理成「标称稳定系统被修正量驱动」，给出输入-状态稳定界的显式增益，把安全与跟踪的权衡量化。三是给出单障碍的最小修正闭式解与显式可行性判据（最大可用外向加速度与屏障右端项比较），并指出多障碍逐个可行不等于联合可行。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自认：递归可行性未建立，QP不可行时仿真只做分量裁剪的 fallback，不保证避障，0.5 m/s²那组余量-1.415 m即为例；表中0.000–0.001 m的余量对传感误差和执行延迟几乎没有裕度；全部结果来自理想平面双积分模型仿真，作者明确说未在机载硬件上评估实时性；此外，3.5 m激活距离只用测试中最小屏障量28.7767&gt;0做经验检验，不是理论保证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.31889v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.31889v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.32184">
+  <div class="t">Wind-Aware Trajectory Planning for Deformable Aerial Formations</div>
+  <div class="meta">Haozhe Wang, Xun Huang · 8 pages, 5 figures, 2 tables</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>城市风场中可变形无人机编队缺乏风-变形耦合规划，Family-Air用共享仿射轨迹族在虚拟管内联合优化，空气相对运动代价较WOO降低22.14%–48.53%。仅仿真验证，未计入推进能耗。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">城市低空运输要求多无人机沿共享路线编队飞行，需要同时满足避障、协调运动和机间安全距离；但建筑造成的空间变化风场使同一编队内各机遭遇的局部风不同，直接影响空气相对速度、气动载荷与轨迹跟踪。虚拟管方法能提供共享无碰撞飞行空间，安全走廊方法能把避障嵌入连续轨迹优化，但这些几何方法只回答“编队能不能通过”，不决定“在风里该怎么飞”。现有仿射编队控制、碰撞约束下的编队参数优化等变形规划工作并未显式考虑空间变化风场；风感知规划则主要面向单机路径选择、局部规划或轨迹速度优化，很少处理可变形编队。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Family-Air（FA）分三步。第一步，从起点、终点和障碍物自动构造虚拟管：建立安全球路标图，只有两球重叠区域能容纳初始编队并满足安全余量才连边，在（前驱球，当前球）状态上用 A* 搜索球序列，代价同时考虑路径长度、通道瓶颈宽度、球数和航向变化。第二步，用时变仿射变换统一表示连续轨迹族：编队中心轨迹加共享变形矩阵，参数多边形上任意点映射为实际无人机位置，因此三架无人机只需优化中心和变形矩阵，而不是各机独立轨迹。第三步，在虚拟管内联合优化编队中心运动、变形和分段时长，目标包括轨迹光滑度（snap）、飞行时间、变形正则和空气相对运动代价。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在 Cross、Street、Mixed、Chicago 四个城市 CFD 风场场景（入口风速 10 m/s）中，各做 10 次不同起点的规划任务，对比 FA 与两个消融变体：WOO（去掉空气相对运动代价）和 CWSK（只在编队中心评估风）。FA 把面积平均空气相对运动代价 J_fam 相对 WOO 降低 22.14%–48.53%，相对 CWSK 降低 2.09%–15.76%；闭环六自由度仿真显示，FA 相对 WOO 把平均 RMS 位置误差降低 13.88%–53.27%，相对 CWSK 降低 1.46%–15.41%；不利风暴露比例 R_adv 相对 WOO 降低 12.17%–45.30%，累计暴露时间减少 2.61–13.39 s。代价是 Cross、Mixed、Chicago 飞行时间分别增加 9.29%、24.88%、27.96%，Street 基本不变。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">FA 证明在空间变化风场中，把编队中心运动、共享仿射变形和时序放在虚拟管里联合优化，能降低整个编队的空气相对运动代价并改善闭环跟踪，且共享仿射参数化不牺牲解的质量、计算还更快。作者声称该方法适用于密集城区协调运输中的可变形编队。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">1）风-变形耦合代价：在连续轨迹族上定义空气相对运动代价，同时计入变形诱导的速度项和随位置变化的风场，而非只在编队中心采样风。
+2）虚拟管内的联合优化：把编队中心运动、共享仿射变形、飞行时间与分段时长放在同一非线性规划里，约束包括管包含、机间距离、地速加速度和空气相对速度。
+3）紧凑表示与连续时间约束：用七次 MINCO 参数化降低决策变量数，用 Bernstein 控制点凸包性质保证管包含和运动学上界，用最小拉伸条件保证最小机间距离。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者只做了仿真验证，没有真机实验；规划时假设风场在轨迹执行期间是稳态的，而真实城市风场会随时间变化。目标函数用空气相对速度平方作为气动载荷代理，没有纳入推进功率模型，作者也把加入推进功率模型评估真实能耗列为未来工作。变形正则项固定参考构型，未讨论不同参考构型对结果的影响。风场来自离线 CFD 计算，没有在线风估计或风场更新闭环。场景只有四个，无人机数量最多到 7 架，更大规模编队的可扩展性未验证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.32184v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.32184v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.32475">
+  <div class="t">ROVO: Robust Rotation-Only Visual Odometry for UAVs at Low and Moderate Altitudes</div>
+  <div class="meta">Xiaokai Song, Li Zhang, Xichao Teng 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>ROVO（仅估旋转的视觉里程计）以滑窗旋转平均只保留姿态，仿真朝向误差为SLAM基线的10.7%。它适合弱视差无地图无人机姿态估计，但不输出平移。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">无人机在低中空常用GNSS/INS，但城市峡谷、山地和森林会遮挡卫星信号，惯导误差随时间累积，需要机载相机提供相对运动信息。相对视觉导航不依赖先验地图，可是高度升高或焦距变长、视场变窄后会出现弱视差：固定基线下远处地形的角度视差小，窄FoV又限制视线方向分布，像点的小误差会让平移方向和地标深度剧烈变化；作者从远距视觉感知中的角度线索出发，提出只估计旋转的ROVO，面向120–3000 m高度，用重叠视角的一致性来选两视图旋转，避免初始化全局平移尺度，也不把不确定深度写进轨迹状态。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">ROVO把标定后的单目图像流映射为带时间戳的相机朝向。前端用SIFT提取特征，与缓冲关键帧做一对一匹配，至少15个独立匹配才估计相对旋转；每个图像对先用RANSAC拟合本质矩阵，Nistér五点解给出基线候选，本质矩阵分解和归一化线性解补充假设，Kneip-Lynen eigensolver再精化。局部验证同时看去旋转后的方位角误差、两个空间子集估计的平移方向是否在15度内一致（可差符号）、正深度和两视图重投影误差。若两个候选都通过，联合选择用已存历史朝向预测新帧，以3度为Huber尺度最小化不同历史边候选间的角度不一致，从而按多视图一致度选边。窗口内用HARA初始化、l1/2鲁棒IRLS做旋转平均，固定锚点消除整体旋转歧义；相邻窗口通过共享帧对齐，再用带角度修正上限的鲁棒融合更新存储朝向。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">仿真中，滑窗ROVO平均朝向误差只有SLAM基线的10.7%。3像素噪声下，eigensolver配窗口旋转平均为3.39度，全局旋转平均1.68度，链式相乘25.12度。MUN-FRL的Bell412原焦距下ROVO与ORB-SLAM3/DPVO相当，三段RRE RMSE为0.511/0.444/0.687度，DPVO为0.510/0.428/0.594度。焦距乘三后，ROVO相对每段次优降低31.3%、69.4%、19.7%。VPAIR高度356–825 m，ROVO覆盖2681/2706即99.1%，共享帧RMSE 2.631度对DPVO 2.639度，文中称较DPVO降32.5%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">ROVO证明在低中空弱视差或窄FoV条件下，放弃建图和全局平移尺度、只估计并滑窗平均旋转，可避免不确定深度向后续位姿传播，旋转精度能与ORB-SLAM3和DPVO相当，并在窄FoV和高高度场景更好。结论适用于单目、无地图、以姿态估计为目标的飞行段。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一，提出ROVO滑窗仅旋转框架，窗口内做鲁棒旋转平均、共享帧对齐和带角度修正上限的跨窗融合，轨迹状态只保留朝向。二，提出多视图一致性的候选选择，用已存历史朝向预测新帧，在五点解与eigensolver候选之间按重叠视角一致度选边。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者在结论中承认当前只输出旋转，未来才把ROVO与惯性和平移测量结合做全位姿导航，因此它不能直接替代完整VO/SLAM，也不提供尺度。实验平台限于MUN-FRL Bell412和VPAIR，未覆盖更多天气、季节和场景；文中未讨论极端弱纹理、动态场景或长时失效后的定量恢复边界。实现为MATLAB R2023b，虽报告窗口更新平均8.6 ms，但全文未给出完整嵌入式实时性、功耗和CPU占用。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.32475v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.32475v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：<a href="https://guff99.github.io/paper-radar-site/daily-2026-11-25.html">2026-11-25</a></footer>
+</div>
+</body>
+</html>
