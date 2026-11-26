@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>论文日报 2026-11-27</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: 0.5px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  h2 {
+    font-size: 17px;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  article {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    scroll-margin-top: 16px;
+  }
+  article:target { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .t { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .tldr {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .tldr b { color: var(--accent); }
+  .overview {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .overview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+  }
+  .detail { margin-top: 4px; }
+  .sec {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    padding-left: 9px;
+    border-left: 3px solid var(--accent);
+  }
+  .sec-body, .detail-para { margin: 0 0 10px; white-space: pre-wrap; }
+  .fail { color: var(--warn); }
+  .links { margin-top: 10px; font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>论文日报 2026-11-27</h1>
+    <div class="sub">每日 arXiv 精选 · 计算机 / 具身智能 / 飞行器</div>
+  </header>
+
+  <h2>计算机</h2>
+  <article id="2611.34943">
+  <div class="t">Tracking Any Point with Agentic Visual Reasoning</div>
+  <div class="meta">Xuweiyi Chen, Jin Yao, Linzhan Mou 等 · Project page: https://agentap.cs.virginia.edu</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>AgenTAP用多步视觉智能体查视频，点定位精度APD从59.4到71.4，超专家跟踪器。它靠视觉工具校验，能重连消失后点，但推理成本不低。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">传统对应分两路：image matching 跨视角建立对应，point tracking 沿时间跟踪运动表面；二者都依赖针对外观和时序线索训练的专家视觉模型。作者指出的卡点有三：外观剧变时点身份难保；点被遮挡、出画后再出现时轨迹容易断；VLM（视觉语言模型）虽懂物体和空间关系，却缺少像素级定位与主动查验能力。直接让 GPT-6 Astra 预测时，87.1% 的可见点落在 16 像素内，但只有 23.8% 落在 1 像素内，常把相似实例或相似部件当成同一点，语义合理但物理位置错误。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">AgenTAP 是 VLM 智能体，不做对应任务微调，直接输出目标点坐标与可见性。流程分三段：先看 source/target 总览，独立给出初始位置或 invisible 判断，且在看专家提议和中间帧之前；再可选接收专家跟踪器候选，只当作证据，可接受、修正或完全推翻；最后多步视觉验证，由 VLM 自选工具：view 选区域和尺度并放大或增强，check 并排或叠加源图与候选裁剪，fit 用自选地标拟合 affine/homography，match 在指定区域做 template matching 或 SIFT，frame 调中间帧看表面运动。坐标始终用原图坐标，位置和可见性一起复核。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">TrackingBench 取 2,000 条两帧查询，来自 272 个真实视频片段、六个域，并另采 15 个视频、1,814 条 held-out 查询防数据泄漏。主表中，GPT-6 Astra 直接预测 Overall AJ/APD/OA/EPE 为 43.2/59.4/85.5/6.5，接上 AgenTAP 后为 54.9/71.4/86.3/4.6；全视频设置下为 58.5/73.9/88.2/4.1，高于 AllTracker HR 的 56.1/67.9/80.2/6.9。重连实验中，重出现点 APD 为 76.9，对比最佳被评跟踪器 40.1。EgoTAP-4D 含 5,399 个视频、297.2 小时。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">结论是：通用 VLM 不做对应任务微调，靠 agentic inference 也能完成像素级点对应，并在 TrackingBench 的评估范围内超过专家跟踪模型；这种能力可把长视频中消失后重现的点接回轨迹，产出能改进 D4RT 的 3D 跟踪数据。作者把结论限定在真实自中心视频和强 VLM 上，未声称小模型或所有场景都同样有效。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">二是构建 TrackingBench：跨六个真实域、2,000 条平衡查询，加 15 个新拍视频的 1,814 条 held-out 标注，用来检验 VLM 与专家模型的交叉点及数据泄漏。三是提出用 VLM 重连长时消失后重现的物理点，并据此构建 EgoTAP-4D：5,399 个视频、297.2 小时，含 2D/3D 轨迹、可见性状态和标注来源。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">可见缺口包括：主结果依赖 GPT-6 Astra 等强 VLM，较小 backbone 的 OA/EPE 仍会下降；多步工具调用带来推理成本，虽有多点共享 session 使每答案 token 降 44–52%，绝对开销未报。失败案例显示相似部件会认错：破壳鸡蛋跟到另一只手、夹爪一指落到另一指，误差 19.8/29.0 像素。EgoTAP-4D 的重连依赖 VLM 过滤，无法交叉验证的预测只标 unverified，且不填补消失期间位置。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34943v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34943v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.34188">
+  <div class="t">MINE: A Training-Free Defense against Indirect Prompt Injection via Mutual Information and Embedding Variance</div>
+  <div class="meta">Truong Phan, Ngoc-Quan Pham, Dat Quoc Nguyen · To appear in Proceedings of EACL 2027 (Main conference paper)</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>MINE 以互信息加方差惩罚替代攻击检测，长上下文把 ASR 从 87.41% 压到 1.56%。它免训练、免标注、无额外 LLM 调用；但自适应攻击下 ASR 回升至 23.20%。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">RAG 让 LLM 用外部文档增强回答，但也引入间接提示注入：检索上下文里的恶意指令能劫持模型。作者把现有防御归纳为三类。提示工程类（Reminder、Spotlight、Sandwich）在上下文前后加“忽略数据里的指令”之类的元指令，但这些指令与注入内容争夺模型注意力，常被覆盖；启发式检测器靠关键词或困惑度尖峰，对改写脆弱且无形式保证；现有评测也集中在 100–300 词的短上下文，没有严格的长上下文基准，而注入在长上下文中更像大海捞针。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">MINE（Mutual Information and Embedding Variance）是 pre-LLM 过滤器：在上下文送入 LLM 前处理检索结果。流程分四步。切分：按句子边界把上下文切成连续片段，相邻片段合并到每个至少 50 字符。嵌入：用同一编码器得到查询和各片段的单位向量。优化：目标函数最大化查询与所选子集质心的互信息，同时减去 α 倍子集嵌入方差。依据两条性质：合法片段与查询语义对齐（高 MI），且彼此主题一致（低方差）；注入片段通常两条都不满足。MI 在二元高斯近似下化为余弦相似度的单调函数，方差用片段到质心的欧氏距离平方度量。子集枚举是 2^n，作者把保留/丢弃决策松弛为概率单纯形上的连续权重，用投影梯度上升迭代，每步后做 O(n log n) 单纯形投影，权重初始化为均匀分布。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">三个 LLM（Llama-3.2-3B、Llama-3.1-70B、Qwen3-30B-A3B）、五类静态攻击加一类自适应攻击。短上下文 Inj-SQuAD 上，MINE 在 Llama-3.2-3B 取得平均 84.32% 准确率、0.46% ASR，无防御为 23.11%/87.20%，RAGDefender 为 20.92%/83.11%；Llama-3.1-70B 为 91.93%/0.55%，Qwen3-30B 为 89.77%/0.46%。长上下文 LC-Inj-SQuAD（694 样本，平均 4,032 词）上，MINE 在 Llama-3.2-3B 为 80.78%/1.56%，无防御只有 9.28%/87.41%，所有静态攻击下 ASR 不超过 3.31%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">长上下文下优势最明显（ASR ≤3.31%）。作者也承认，面对全自适应攻击时 ASR 升至 23.20%，说明相关性最大化并非万能，残余注入仍是风险。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">新机制：把子集选择表述为互信息最大化加嵌入方差惩罚的联合目标，用概率单纯形上的连续松弛和投影梯度上升求解，使 2^n 的组合问题可解。新资源：LC-Inj-SQuAD 长上下文基准，平均 4,032 词，填补了现有评测只覆盖 100–300 词短上下文的空白。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自述的局限：分块器按句子边界切分并合并到 50 字符，预设标点规范的散文；代码、JSON、markdown 表格或非标准句号语言可能切分过粗，无法把注入与周边合法内容隔离，需要领域专用分块器。我的观察：自适应攻击下 ASR 升至 23.20%，残余风险不可忽视；LC-Inj-SQuAD 仅 694 样本，规模有限。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34188v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34188v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.34907">
+  <div class="t">Agentic LongLive: Asynchronous Agentic Memory for Long Video Generation</div>
+  <div class="meta">Shaoteng Liu, Shuai Yang, Wei Huang 等 · 28 pages, 12 figures. Project page: https://nvlabs.github.io/LongLive/Agentic-LongLive/</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>Agentic LongLive 用异步智能体记忆，把实时长视频的主角身份从 44.1% 提升到 89.0%。代价是多花 3–4 张 GPU、记忆慢一镜头，实时性靠 8 卡 B200 维持。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">这个方向的实时生成器（AR，逐块流式生成、几步采样）把记忆交给 KV cache：一个 attention sink 钉住最早的帧，再加一个最近帧的滑动窗口。旧内容被丢掉，被保留的又是模型自己的输出，于是错掉的脸和丢失的物体被一路抄下去。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Agentic LongLive 把记忆做成异步流水线，GPU 分三组：DiT ranks 生成视频；auxiliary ranks 跑异步 decoder 和持有 DiT 权重副本的 prefill worker，用冻结 VAE 编码记忆图并算 sink K/V；agent ranks 跑做规划检查的 VLM 与画图的图像模型。数据单向流：agent→prefill→DiT→decoder，agent 不等解码。提交与换入上，shot i 的记忆在 shot i-1 生成期间准备好，第 0 版一画完就提交并 prefill（即使检查未过），剩余时间才重画，新版须通过检查且分数不更低才替换；不知道下一个提示要什么，作者用 GRPO 训 Qwen3-8B+LoRA 规划器，奖励由文本、图像、精确、保留四项加权，图像项用真实视频结果校准。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">LongStory-Online 是新建基准：25 个故事、857 个镜头、约 150 分钟，提示一次只揭示一个，每镜头只生成一次，禁止重生成与 best-of-N，隐藏标注在任何方法跑之前冻结。在 LongLive-2.0 上（同 backbone，隔离记忆变量）：State 38.2→64.5（+26.3），Identity 44.1→89.0（+44.9），Same protagonist 18.1→46.8，Location 68.8→98.0，Revisit 15.0→55.4，VBench imaging 0.667→0.729，严重伪影 15.8%→6.0%，每镜头多约 0.9% 时间；四个 Wan2.1 开源 AR baseline 被全面超过。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明：把记忆从生成器的 KV cache 里剥出来、交给一个只读提示不读视频、在别的 GPU 上异步跑的 LLM agent，能在不打断实时流的前提下把长故事一致性拉上一个档次，代价约 1% 生成时间与额外 3–4 张 GPU。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一，异步 agentic 记忆范式：记忆构建、绘图、prefill 全藏在生成延迟背后，显存恒定、无长度上限，是首个由 LLM agent 维护文本与图像记忆的实时视频生成器。三，视频结果校准的 hindsight reward 加 GRPO，教小模型在不知道下一提示时决定记什么，使 8B 规划器顶替 35B。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">记忆图把主体画成中远景，planned close-up 命中率从 75.5% 掉到 63.7%，给所有注入成员写卡片单项就掉 22.4 分 framing，只给提示点名的实体写卡片则不显著（−0.7）；记忆图还会把新场景拉回上一地点（MiniMax-H3 上整张 G 尤甚）。MiniMax-H3 的记忆 K/V 依赖提示、无法提前 prefill；LongLive-H3 实时需 5 张 B200，H100 要 8 张且多数更新晚一镜头。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34907v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34907v1" target="_blank">PDF</a></div>
+</article>
+  <h2>具身智能</h2>
+  <article id="2611.34655">
+  <div class="t">Nav4Manip: From Navigation to Dexterous Mobile Manipulation through Co-Evolution</div>
+  <div class="meta">Yusen Feng, Zixi Kang, Zhijun Yin 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>Nav4Manip 让导航操作通过反馈互相提升，端到端成功率 34.30%→52.13%。它面向长程灵巧移动操作，真机演示覆盖导航、抓取与行人避让。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">灵巧移动操作要把 vision-language navigation（VLN，按语言指令走到目标）和灵巧操作串成一条长链。作者指出两个具体卡点。其一是导航终点太粗：VLN 基准只要求机器人停在距参考目标 3 米内就算成功，但操作能否成功对底座的最终位置和朝向极其敏感，工作空间几何、运动学可达性、可见性、碰撞约束都卡得很紧；一个 VLN 层面成功的终点，可能让目标根本抓不到、被挡住，或只能从别扭的方向接近。其二是导航与操作分开训练：现有系统要么用统一的全身策略做房间尺度任务，要么各自训练导航和操作模块。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Nav4Manip 由两个模型组成。Nav4Manip-N 负责长程导航，在 Qwen3-VL 主干上输出导航动作、EQA 答案、密集 affordance 地图和图像端点提议，学习信号是候选终点在真实操作中的成功率。Nav4Manip-M 是 world-action model（WAM，联合建模未来视觉动态与动作的模型），用 Qwen3-VL-4B 编码器、Wan2.2 视频分支和 1B ActionDiT 经 Mixture-of-Transformers 耦合，预测 32×58 关节位置块。二者通过 Nav4Manip-Pairs 对齐：在 MuJoCo 里对候选基座做带物体位姿扰动的重复操作 rollout 得到端点 affordance，路径经校验后在 Isaac Sim 渲染，再由 VLM 生成指令。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">引言给出的核心数字是：协同进化相比交替优化将端到端成功率提升 17.83 个百分点（52.13% vs 34.30%）。表 1 列出多任务协同微调数据为 4.9M 样本、625.08 小时，其中 Nav4Manip-Pairs 占 233.11 小时、1.8M 样本、17,927 个 episode。真机用 Galbot G3 加两个 Sharpa 手完成三类演示：导航-操作协调（抓蓝色薯片盒再返回）、长程导航（穿过大厅到玻璃门）、行人避让；affordance 遮挡敏感性（图 14）显示模型主要依赖头部相机哪些区域预测停靠点。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">这篇证明了导航与操作可以在一个共享目标下协同提升：用操作执行结果筛选和修正导航轨迹，导航器学会停在更适合操作的终点。17.83 个百分点的端到端提升对比的是交替优化，说明分阶段协同进化比反复重训两个模块更有效。适用范围是长程、多指灵巧的移动操作任务。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是提出双向耦合的协同进化范式：导航策略用下游操作执行结果来筛选和修正，而不是独立训练或交替重训。三是构建 Nav-N-Manip 基准和 Nav4Manip-Pairs 数据集，提供 233 小时的配对导航-操作轨迹与端点 affordance 监督。四是在一个 Qwen3-VL 主干上同时输出导航动作、EQA 答案、密集 affordance 地图和图像端点提议，让导航器在推理时就能预判操作可行性。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">全文未设独立的 Limitations 章节。第一，量化对比集中在协同进化与交替优化之间，截断的实验章节没有给出主要消融表和各 VLN 基准的 SR/SPL，无法判断每个训练阶段的单独贡献。第二，真机结果只有三次演示、一个平台（Galbot G3 + Sharpa 手），没有多机器人或多场景泛化的统计。第四，Nav4Manip-M 推理链路包含 Qwen3-VL-4B、视频 DiT 和 1B ActionDiT，文中未给出延迟或算力开销。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34655v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34655v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.33794">
+  <div class="t">Keep or Roll Back? Out-of-Loop Judges for Self-Improving VLA and End-to-End Embodied Policies</div>
+  <div class="meta">Zilin Huang, Zhengyang Wan, Kangan Qian 等 · Project page: https://zilin-huang.github.io/SealedLoop/</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>SealedLoop 给自我改进具身策略加回路外密封评判者，驾驶收尾 0.674 对回路评分者 0.649 PDMS。用在仿真与真车，长任务与在线 RL 未覆盖。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">具身策略的自我改进已是实用配方：策略收集经验、评判者打标、在判定为好的回合上重训，循环往复。但评判者通常在同一回路内训练或选择——成功分类器、学习评分者、VLM 评判者——其证据与策略不独立。作者指出错误增益有两个来源：评判者错误，即学习评判者在其自身数据上判错，且优化会放大误差（策略会钻学习奖励的空子，例如停在目标前）；迁移差距，即回路自身帧上的真实增益无法迁移到未见城市或真车。作者调查 56 个具身自我改进回路，无一同时报告逐代曲线与量化过的策略利用评判者案例。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">SealedLoop 由密封评判者与序贯检验组成。密封评判者是回路外的评估者，其数据、参数与日程对改进者隐藏，密封条件在改进者运行前固定且独立抽取。每代四步：Seal 固定评估池、评判者与抽条件规则；Improve 只用回路内评判者 J_in 生产候选；Decide 在配对条件上评估新旧策略，用 betting confidence sequence 给出同时有效区间，下界大于零则接受、上界小于零则拒绝、否则继续到预算 N；Reveal 接受则保留否则回滚，未决也回滚。命题 1 表明：在配对差均值独立假设下，无论改进者做什么，保留更差或拒绝更好策略的概率不超过 α（实验中取 0.05）。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">成功分类器一代中把训练策略的 196 个失败接受 65 个；90 代里 5 代报增益而密封评判者判为退步；密封测试保留 45 个候选中的 12 个（平均 +0.147）。驾驶用 NAVSIM，起始策略 DiffusionDrive 在拉斯维加斯、匹兹堡、新加坡 2 万帧上训练，密封池为 16,685 帧波士顿（训练未见城市）。第一代评判者差距：自身标签刷新 +0.095 [0.087, 0.104]，真实标签刷新 +0.045 [0.037, 0.052]；密封评判者回滚全部 15 个候选；精确回路内评判者也会保留 15 个中 8 个在未见城市变差的策略。密封测试在已知密封增益对上接受 11/12 真实增益、0/59 退步；追求提升的驾驶回路以 0.674 PDMS 收尾，对比自身评分者 0.649（起点 0.638），认证 11 个首步增益（+0.029 到 +0.043 PDMS），回路评分者只接受 1 个。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">作者证明：来自回路内部的证据，无论多准确，都不足以决定策略是否变好；密封评判者的序贯检验能在有界错误率下认证真实增益、回滚虚假增益，并把假增益拆成评判者错误和迁移差距。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">把密封评判者引入具身自我改进回路，让改进者无法看见或针对其优化，并据此做保留/回滚决策。
+用同一回路分别在两种评判者下运行，将评判者差距分解为评判者错误与迁移差距，首次在具身回路上逐代量化两种错误。
+用 anytime-valid 序贯检验作为接受规则，对保留更差策略的概率给出与改进者行为无关的上界。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自述：回路只在仿真中运行，三个短时程操作任务加一个驾驶基准，各用一个已发表改进器；驾驶基准回放记录日志，其他道路使用者不会对策略作出反应；还有几个缺口：未决代需要大预算才能决断（操作中位数 4.7 到 7.4 倍预算，最多 48,024 对；驾驶中位数 5.6 倍日志、最多 242 倍）；密封评判者本身也可能有噪（Qwen2.5-VL-7B 作替身 AUC 0.85、TPR 0.82 时 FPR 0.24）。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.33794v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.33794v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.34280">
+  <div class="t">Escapingthe instruction blackhole of vision-language-action policies via optimal-transport wormholes</div>
+  <div class="meta">Xuetao Li, Chen Liu, Jing Wu 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>VLA 执行中改指令会失效（指令黑洞），无训练的 Wormhole 把切换成功率从 1.2% 提到 93.1%。它插在 π0/π0.5 上、不改权重，但仅在 LIBERO 仿真验证。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">作者用探针点破：π0.5 在 LIBERO 上执行“把汤放进篮子”，控制第 8 步改口令，10 次有 7 次跟随；第 16 步改口只剩 1 次跟随，7 次照样做完旧任务，新指令既不引发迟疑也不报错，直接消失，作者称之为 instruction black hole，并给出 event horizon——越过某个执行时刻，新指令再也逃不出旧任务的引力。两个共享布局、只差“取哪个相同碗”的任务上，开头切换 80/80 跟随，15 步后切换只有 2/80；LIBERO-Goal 上 20 步后 12/48、60 步后 1/48。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">Proposition 1 证明静态模仿在 committed region（执行状态已唯一确定任务的状态集）对指令不变——听得见与聋的策略损失完全相同，因此加同类示范、加层次重规划、在推理时放大指令都救不回来。它无需训练、无需切换示范、不访问权重，分三步：用 base policy 采样 16 条旧任务 continuation 作为出口（mouth A）；再以限速 traversal（开夹爪、抬起、平移、落到 far mouth，中位 43 步）把机器人送到位，随后交回未修改的策略。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">LIBERO 仿真，π0 与 π0.5 两个 backbone，paired counterfactual（同初始状态、同噪声种子），方案在 development split 上定死，test split 只跑一次。committed switch 成功率：π0 从 0% 到 93.1%，π0.5 从 1.2% 到 93.1%，capture 为 0；推理时补救最高 11.2%（CIG），action-space bridge 32.5%；脚本化 retreat-and-restart 为 83.8%（π0）与 90.0%（π0.5），Wormhole 与之持平或更高，动作不连续度 0.32 对 1.51，约为其五分之一。附表中 vanilla 的 capture 66.2%、freeze 32.5%，Wormhole 为 0 与 5.0%。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明 instruction black hole 不是某个 checkpoint 的怪癖，而是静态模仿的结构性盲点：执行状态一旦自己说出任务，语言在损失里就冗余，聋与听不可区分，静态评测中的语言忽视是它的极限情形。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">提出并量化 instruction black hole：给出 transmission ratio 与 event horizon 的可测定义、三种行为征象，以及 LIBERO 中段切换协议。
+可辨识性理论：Proposition 1 证明静态模仿对该盲点不可辨识，Proposition 2 把“逃脱”转化为“重定位”。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">traversal 由脚本控制器执行，需要自由空间，中位 43 步的额外开销在狭窄或接触丰富场景中未必可行。消融显示 OT 与限速对成功率贡献有限（92.5%、93.8% 对 95.0%），主要收益在平滑度，作者未给出更复杂场景下 OT 必要性的证据。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34280v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34280v1" target="_blank">PDF</a></div>
+</article>
+  <h2>飞行器</h2>
+  <article id="2611.31889">
+  <div class="t">Barrier-Based Safety Filtering for Quadrotor Flight in Cluttered Environments Under Acceleration Limits</div>
+  <div class="meta">Andi Rahmadiansah</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>四旋翼只靠跟踪会撞障；高阶 CBF（安全屏障）过滤加速度后，最小间隙从 -1.594 m 到 0.0001 m。代价是 RMSE 升到 0.908 m，且安全依赖 QP 持续可行。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">四旋翼越来越多用于巡检、监视、测绘和受限空间导航，任务常要求贴着障碍飞行。工程上通常两层处理：规划层用采样、图搜索或优化规划器先算一条无碰撞几何路径；反应层用人工势场等在线方法改动运动。作者点出的卡点有三条：规划路线在执行时会因跟踪误差、扰动、障碍信息不准而失去安全性，规划时无碰撞不等于执行时无碰撞；势场类方法对参数敏感，容易局部极小、振荡；位置型安全函数对加速度输入的相对度为 2，必须用高阶 CBF。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">模型是固定高度的平面双积分器，状态为水平位置与速度，控制量是水平加速度。标称控制器为 PD 型：参考加速度减 Kp 位置误差、减 Kv 速度误差，无障碍时指数收敛。该函数求导两次后加速度才出现，相对度为 2，因此引入高阶 CBF：令 ψ1 等于 h 的导数加 α1 乘 h，要求 ψ1 的导数加 α2ψ1 非负，展开后得到关于加速度的仿射不等式 a_j 转置乘 u 大于等于 b_j。为省算力只把距有效边界 3.5 m 内的障碍放进 QP；QP 用枚举候选点求解，候选包括标称点、约束边界投影和成对边界交点，三障碍时不超过 29 个。初始 h 与 ψ1 非负且 QP 持续可行时安全集前向不变。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">仿真设置：Kp 为 3.2I、Kv 为 3.6I，α1 与 α2 均取 2，机体半径 0.25 m，安全裕度 0.45 m，默认加速度上限 2.5 m/s²，RK4 积分步长 0.01 s；单障碍环境为半径 1.15 m 的圆，三障碍环境半径为 0.9、1.0、0.95 m，参考轨迹是匀速平移加正弦。
+主结果：单障碍下标称控制器 RMSE 仅 0.050 m，但最小间隙 −1.594 m；过滤后 RMSE 0.908 m、间隙 0.0001 m，控制努力从 2.559 升到 10.893，26.237% 的时刻命令被改动。三障碍下 0.044 m 与 −1.421 m 变成 0.747 m 与 0.001 m，改动比例 40.800%；
+加速度上限扫描：0.500 m/s² 时出现 352 个不可行采样点，最小间隙 −1.415 m、最小 ψ1 为 −6.102，安全保证失效；提到 0.750 m/s² 后恢复可行，RMSE 反升到 0.826 m。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明了四件事：滤波器关闭时标称控制器指数跟踪；在初始 h 与 ψ1 均非负、每个相关障碍都被及时纳入 QP 的前提下，安全集前向不变；安全介入期间跟踪误差输入到状态稳定，介入结束后误差回到零；单障碍下的可行性能用沿背离障碍方向的最大可用加速度与阈值比较来显式判定。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">其一，把高阶 CBF、分量加速度箱约束和最小改动 QP 组合成一个可挂在现有外环跟踪器上的模块化安全过滤器，标称命令可行时输出完全不变。
+其二，把安全介入写成作用在标称闭环上的加性输入 Δu，给出输入到状态稳定的误差界，把跟踪精度换避障从定性说法变成可解析的不等式。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者自己承认：模型限于固定高度平面双积分器，障碍静止且位置半径已知；表 1 中 0.000 至 0.001 m 的最小间隙几乎没有余量，感知误差或执行延迟就可能吃掉；增益只做了上下 20% 共五组。还有几处作者未展开：3.5 m 激活距离只在测试中验证，进入前最小 ψ1 为 28.7767，没有理论保证。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.31889v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.31889v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.34046">
+  <div class="t">End-to-End Image-Goal Navigation for Agile Quadrotors via Recurrent State Distillation</div>
+  <div class="meta">Simone Nascivera, Ismail Geles, Davide Scaramuzza</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>本文提出让四旋翼直接输出推力和角速率的图像目标导航策略，无需状态估计，未见3D环境成功率82.3%、终位误差0.10m。真机零样本84%。</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">现有四旋翼图像目标导航分两类做法。SIGN、Omni-IGN 等方案能将无人机飞到目标照片附近，但输出的是平面速度指令，并且依赖 VIO 或 LIO 做状态估计，再由独立控制器转换为飞行指令；另一类工作用视觉策略直接输出低级控制，但只在门穿越等特定任务上演示过，未做目标图像导航，也未在未见环境中验证。作者指出的核心难点有两条：单目图像既无度量尺度也无机体运动信息，同一组当前与目标图像的视觉差异在不同速度下需要完全不同的动作；四旋翼倾斜时推力方向和相机视野同时改变，视觉策略必须学会这种耦合。这导致已有方法要么牺牲三维运动能力，要么依赖状态估计。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">方法分四阶段训练。Stage 1 用 PPO 训练状态教师，输入 12 维目标相对状态（相对位置、相对姿态、机体速度、角速度），输出集体推力和三轴角速率。Stage 2 训练视觉编码器：冻结 DINOv3 ViT-S/16 提取 patch 描述子，加入相机射线嵌入，经双向交叉注意力交换当前帧与目标帧信息，再由 LSTM 融合历史，输出 128 维特征，同时用相对位置、旋转、机体速度、角速度监督，并对齐教师隐空间。Stage 3 用教师权重初始化 actor，将状态嵌入替换为视觉嵌入，按 DAgger 策略用教师动作做模仿学习。Stage 4 用 PPO 闭环微调，并加入基于仿真真值几何的图像重投影惩罚，在接近目标时约束视角对齐。部署时策略只接收当前图像、目标照片和上一控制指令。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">在 HM3D 100 个未见环境 1000 次留出飞行上，方法取得 82.3% 成功率，成功飞行平均终端位置误差 0.10m。对比 IBVS、SIGN 等基线，成功率最高，但完成时间和最终位置误差大于 IBVS。Gibson 数据集上成功率 93%。真机零样本部署在未见室内场景 25 次试验中 84% 成功率，平均最终位置误差 0.118m、朝向误差 3.07°，实验期间 30.51% 的接收帧被丢弃。消融方面：Stage 3 后成功率 64.8%，Stage 4 后提升至 82.3%；从零训练 PPO 和仅用 Stage 2 初始化均无法通过课程第一级；去掉上一命令，训练和验证损失分别增至 3.7 倍和 4 倍；去掉循环结构，验证损失增加近 12 倍。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">论文证明了无需 SLAM、VO、SfM 等状态估计，也能用单目图像和目标照片直接控制四旋翼完成三维目标导航并精确悬停。四阶段训练流程是收敛的关键：视觉预训练让模仿学习能推进课程，模仿学习又为 RL 微调提供有效初始化。作者声称方法适用于初始与目标图像存在部分视觉重叠的场景，并能在未见环境中零样本迁移。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">首个直接输出集体推力和角速率的图像目标导航飞行策略，部署时不依赖状态估计或速度控制器。
+提出四阶段训练流程，在模仿学习之前增加独立的视觉表征学习阶段，用几何与运动监督对齐教师隐空间。
+在 Stage 4 引入基于仿真几何的图像重投影惩罚，在接近目标时提升视角对齐精度。
+在 100 个未见 HM3D 环境和真机未见室内场景验证零样本泛化。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">作者在结论中承认：方法假设初始图像与目标图像存在部分视觉重叠，不处理探索问题。真机实验仅在一个未见室内环境、25 次试验，规模有限。方法依赖仿真中的真值几何计算 Stage 4 重投影惩罚。全文未讨论代码与数据是否开源，也未给出与基线在推理延迟上的对比（真机实验报告 TensorRT 推理中位数 1.06ms，但无对比）。未在动态场景或复杂光照下评估。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34046v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34046v1" target="_blank">PDF</a></div>
+</article>
+  <article id="2611.34485">
+  <div class="t">SkySearcher: High-Altitude Onboard VLM Reasoning for Aerial Semantic Search</div>
+  <div class="meta">Giacomo Vianello, David Morilla-Cabello, Juan Dendarieta Serrano 等</div>
+  <div class="overview"><span class="overview-label">一句话总览</span>SkySearcher 以机载 Qwen3-VL-4B 和轻量 2D 概率地图做高空开放词表搜索，在 AirSim 的 107 个 episode 上把成功率从 22.5% 提到 81.</div>
+  <div class="detail"><h3 class="sec">一、研究背景与动机</h3>
+  <p class="sec-body">高空无人机视野开阔，适合监视、灾后搜救与设施巡检，VLM 的开放词表语义能力让 Aerial ObjectNav 这类任务变得可行。作者在 Introduction 里点出的痛点有三条：现有系统沿用低空策略，靠近距离迭代探索、range sensor 与物体检测器，往往需要 semantic voxel map 这类稠密 3D 度量语义重建和复杂轨迹规划；依赖云端大 VLM，默认网络常连，带来延迟与 API 成本。</p>
+  <h3 class="sec">二、方法整体架构与核心机制</h3>
+  <p class="sec-body">SkySearcher 分四段。任务开始时地面站用云端 LLM 把查询拆成主目标、语义线索及其与目标的期望距离和方差，这是全流程唯一联网的一步。飞行中机载 Qwen3-VL-4B 在固定高度、固定下俯角的 RGB 图上输出目标与线索的检测框和置信度，同时维护两张 2D 图：覆盖率图把相机视锥与地面求交，用带 buffer 的形态学闭运算补相邻足迹的缝隙；概率语义图用递归贝叶斯更新目标位置信念。检测框经蒙特卡洛采样投到地面拟合成高斯，再用 Flat-Top Kernel 在椭圆内给均匀置信、只在椭圆外衰减，避免普通高斯在单点造出虚假峰值；似然里还乘上以期望距离为中心的空间项与重复观测折扣，目标未检出时对当前足迹内的格子按 1-β 下调作负证据。</p>
+  <h3 class="sec">三、实验结果</h3>
+  <p class="sec-body">仿真在 AirSim（Unreal Engine 4.27）上跑 UAV-ON 基准并扩展了上下文线索，四个大场景共 107 个 episode，每个最多 50 个决策步；机载 RGB-D 下俯 60°、736×736、80° 视场，LiDAR 20 m 避障，巡航 2 m/s、飞行高度 15 m，视觉伺服最低 3 m。主表上 SkySearcher 的 SR 为 81.3%，对比 SPF 22.5%、VLFM 14.0%、CLIP-H 5.6%；SPL 52.8 对 20.7，DTG 24.7 m 最低，飞行时间 245.5 s 也最短；分环境中 Downtown 最好（SR 86.1、DTG 16.0 m），Venice 最难（68.0，窄巷遮挡）。</p>
+  <h3 class="sec">四、核心结论</h3>
+  <p class="sec-body">作者证明高空视角本身的宽视场可以替代低空近距离迭代和稠密重建：只要把 VLM 的语义输出投影成地面上的概率信念，再用信息增益驱动视点选择，开放词表目标搜索就能在完全机载、无网络条件下运行。</p>
+  <h3 class="sec">五、创新点</h3>
+  <p class="sec-body">一是把高空视锥与地面求交投影当作「深度传感器」用，用视场覆盖替代有限量程测距与稠密体素重建。
+二是用一张 2D 覆盖率图加一张概率语义图承载几何与语义记忆，正负证据都在贝叶斯框架内融合，内存开销与场景尺度解耦。
+四是整套系统以 ROS2 实现，仿真与真机共用一套代码，4B 级小模型即可全机载运行。</p>
+  <h3 class="sec">六、局限性</h3>
+  <p class="sec-body">真机只做了一个 22×20 m 场地、5 m 高度的单次演示，且由人类飞手按规划视点操纵、RTK-GPS 提供定位，不能算全自主飞行验证；仿真只用 AirSim 的 UAV-ON 四个环境 107 个 episode，未跨仿真器或跨数据集验证。我另外看到的缺口：VLM 固定为 Qwen3-VL-4B，没有替换不同规模模型的对比，机载算力下限不清楚；Venice 的 SR 只有 68.0%，遮挡场景下的失败模式没有专门分析。</p></div>
+  <div class="links"><a href="http://arxiv.org/abs/2611.34485v1" target="_blank">arXiv 原文</a> · <a href="https://arxiv.org/pdf/2611.34485v1" target="_blank">PDF</a></div>
+</article>
+
+  <footer>上一期：<a href="https://guff99.github.io/paper-radar-site/daily-2026-11-26.html">2026-11-26</a></footer>
+</div>
+</body>
+</html>
